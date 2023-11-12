@@ -1,23 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
-  "version": "1.0",
+  "name": "Auto-call for Works Calendar",
+  "description": "This extension sends notifications to you at your meeting schedule. Just click the notification to join the meeting.",
+  "version": "0.0.0",
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "dist/index.html",
+    "default_icon": "asset/icons8-calendar-96.png"
   },
+  "icons": {
+    "96": "asset/icons8-calendar-96.png",
+    "128": "asset/icons8-calendar-128.png"
+  },
+  "permissions": ["alarms", "notifications", "storage", "tabs", "offscreen"],
   "content_scripts": [
     {
-      "js": ["lib/moment-2.9.4.min.js", "scripts/content.js"],
+      "js": ["dist/content.js"],
       "matches": [
         "https://calendar.worksmobile.com/main*",
         "https://calendar.navercorp.com/main*"
       ],
       "runAt": "document_idle"
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  }
 }
-
-
-// extension service worker: alarm
-

@@ -1,0 +1,39 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "targets": {
+    "index": {
+      "source": "src/index.html",
+      "publicUrl": "./",
+      "distDir": "../dist"
+    },
+    "background": {
+      "source": "src/background.js",
+      "distDir": "../dist"
+    },
+    "content": {
+      "source": "src/content.js",
+      "distDir": "../dist"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf .parcel-cache ../dist",
+    "dev": "parcel",
+    "build-local": "cross-env LOCAL_BUILD=true parcel build --no-content-hash --no-optimize",
+    "build": "npm run clean && parcel build --detailed-report"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.18",
+    "moment": "^2.29.4",
+    "parcel": "^2.10.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "process": "^0.11.10"
+  }
+}
