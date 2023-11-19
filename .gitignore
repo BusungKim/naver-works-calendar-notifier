@@ -8,3 +8,6 @@
 /dataSources.local.xml
 /.idea/
 /asset-manifest.json
+/dist/
+/works-calendar-auto-call.zip
+*.iml
