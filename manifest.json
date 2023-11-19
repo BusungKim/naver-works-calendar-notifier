@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Auto-call for Works Calendar",
-  "description": "This extension sends notifications to you at your meeting schedule. Just click the notification to join the meeting.",
+  "name": "NAVER WORKS Calendar Notifier",
+  "description": "This extension sends notifications to you at your meeting schedule.",
   "version": "1.0.0",
   "action": {
     "default_popup": "dist/index.html",
