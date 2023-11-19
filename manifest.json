@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Auto-call for Works Calendar",
   "description": "This extension sends notifications to you at your meeting schedule. Just click the notification to join the meeting.",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "action": {
     "default_popup": "dist/index.html",
     "default_icon": "asset/icons8-calendar-96.png"
