@@ -20,7 +20,7 @@
     "clean": "rm -rf .parcel-cache ../dist",
     "dev": "parcel",
     "build-local": "cross-env LOCAL_BUILD=true parcel build --no-content-hash --no-optimize",
-    "build": "npm run clean && parcel build --detailed-report"
+    "build": "npm run clean && parcel build --detailed-report --no-source-maps"
   },
   "license": "ISC",
   "dependencies": {
