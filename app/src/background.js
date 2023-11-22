@@ -1,7 +1,9 @@
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    chrome?.storage?.local.set({'data.schedules': request.schedules}).then(() => {
+    const uniqueSchedules = request.schedules.filter((schedule) => !schedule.parentScheduleId);
+
+    chrome?.storage?.local.set({'data.schedules': uniqueSchedules}).then(() => {
         console.log('onMessage - set data.schedules');
-        setBadgeText(request.schedules);
+        setBadgeText(uniqueSchedules);
     });
 });
 
