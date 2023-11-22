@@ -6,3 +6,8 @@ package: build
 
 build:
 	cd app && npm run build
+
+unzip:
+	rm -rf temp
+	mkdir temp
+	unzip $(ZIP_FILE) -d temp
