@@ -1,5 +1,7 @@
-import {Box, Button} from "@mui/material";
-import {handleAlarm} from "../background";
+/* global chrome */
+import React from 'react';
+import { Box, Button } from '@mui/material';
+import { handleAlarm } from '../background';
 
 export function Debug() {
   return (
@@ -10,19 +12,19 @@ export function Debug() {
       <Button variant="contained" onClick={handleClickPingPlay}>Ping Play</Button>
       <Button variant="contained" onClick={handleAlarm}>Trigger Alarm</Button>
     </Box>
-  )
+  );
 }
 
 function handleClickNotification() {
   chrome?.storage?.local.get('setting.pausedUntil').then((result) => {
     console.log('pausedUntil: ', result['setting.pausedUntil']);
   });
-  chrome?.notifications?.create(`notinoti`, {
+  chrome?.notifications?.create('notinoti', {
     title: '[DEBUG] This is title',
     message: 'Click to join the meeting',
     requireInteraction: true,
     type: 'basic',
-    iconUrl: chrome.runtime.getURL('asset/icons8-calendar-96.png')
+    iconUrl: chrome.runtime.getURL('asset/icons8-calendar-96.png'),
   });
 }
 

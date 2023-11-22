@@ -1,7 +1,8 @@
-import {Box, Divider, Typography} from '@mui/material';
-import {useEffect, useState} from "react";
-import {CustomRadioGroup} from "./CustomRadioGroup";
-import {Debug} from "./Debug";
+/* global chrome */
+import { Box, Divider, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { CustomRadioGroup } from './CustomRadioGroup';
+import { Debug } from './Debug';
 
 export default function App() {
   const [sound, setSound] = useState('');
@@ -9,7 +10,7 @@ export default function App() {
   const [notiTimeWindow, setNotiTimeWindow] = useState('');
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound','setting.notiRetention','setting.notiTimeWindow'])
+    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
       .then((result) => {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
@@ -17,24 +18,24 @@ export default function App() {
       });
   }, []);
 
-  function handleChangeSound(sound) {
-    console.log('handleChangeSound: ', sound);
-    chrome?.storage?.local.set({'setting.sound': sound}).then(() => {
-      setSound(sound);
+  function handleChangeSound(nextSound) {
+    console.log('handleChangeSound: ', nextSound);
+    chrome?.storage?.local.set({ 'setting.sound': nextSound }).then(() => {
+      setSound(nextSound);
     });
   }
 
-  function handleChangeNotiRetention(notiRetention) {
-    console.log('handleChangeNotiRetention: ', notiRetention)
-    chrome?.storage?.local.set({'setting.notiRetention': notiRetention}).then(() => {
-      setNotiRetention(notiRetention);
+  function handleChangeNotiRetention(nextNotiRetention) {
+    console.log('handleChangeNotiRetention: ', nextNotiRetention);
+    chrome?.storage?.local.set({ 'setting.notiRetention': nextNotiRetention }).then(() => {
+      setNotiRetention(nextNotiRetention);
     });
   }
 
-  function handleChangeNotiTimeWindow(notiTimeWindow) {
-    console.log('handleChangeNotiTimeWindow: ', notiTimeWindow)
-    chrome?.storage?.local.set({'setting.notiTimeWindow': notiTimeWindow}).then(() => {
-      setNotiTimeWindow(notiTimeWindow);
+  function handleChangeNotiTimeWindow(nextNotiTimeWindow) {
+    console.log('handleChangeNotiTimeWindow: ', nextNotiTimeWindow);
+    chrome?.storage?.local.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
+      setNotiTimeWindow(nextNotiTimeWindow);
     });
   }
 
@@ -42,9 +43,10 @@ export default function App() {
     <div className="container">
       {process.env.LOCAL_BUILD && <Debug />}
       <Box style={{
-        margin: "auto",
-        width: "250px",
-      }}>
+        margin: 'auto',
+        width: '250px',
+      }}
+      >
         <Box display="flex" alignItems="center" p={1}>
           <Typography variant="subtitle1">Sound</Typography>
         </Box>
@@ -52,12 +54,13 @@ export default function App() {
           <CustomRadioGroup
             name="sound"
             value={sound}
-            onChange={handleChangeSound}
+            onChange={(e) => handleChangeSound(e)}
             items={[
               { value: 'none', label: 'None' },
               { value: 'cp77', label: 'Cyberpunk 2077' },
               { value: 'ping', label: 'Ping' },
-            ]} />
+            ]}
+          />
         </Box>
         <Divider />
 
@@ -68,11 +71,12 @@ export default function App() {
           <CustomRadioGroup
             name="noti-retention"
             value={notiRetention}
-            onChange={handleChangeNotiRetention}
+            onChange={(e) => handleChangeNotiRetention(e)}
             items={[
               { value: 'forever', label: 'Forever' },
               { value: 'transitory', label: 'Transitory' },
-            ]} />
+            ]}
+          />
         </Box>
         <Divider />
 
@@ -83,12 +87,13 @@ export default function App() {
           <CustomRadioGroup
             name="noti-time-window"
             value={notiTimeWindow}
-            onChange={handleChangeNotiTimeWindow}
+            onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
               { value: 1, label: '1 min' },
               { value: 2, label: '2 min' },
               { value: 3, label: '3 min' },
-            ]} />
+            ]}
+          />
         </Box>
       </Box>
     </div>
