@@ -11,7 +11,7 @@
     "96": "asset/icons8-calendar-96.png",
     "128": "asset/icons8-calendar-128.png"
   },
-  "permissions": ["alarms", "notifications", "storage", "tabs", "offscreen"],
+  "permissions": ["alarms", "notifications", "storage", "offscreen"],
   "content_scripts": [
     {
       "js": ["dist/content.js"],
