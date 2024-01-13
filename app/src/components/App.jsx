@@ -1,5 +1,7 @@
 /* global chrome */
-import { Box, IconButton, TextField } from '@mui/material';
+import {
+  Box, IconButton, TextField,
+} from '@mui/material';
 import { Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
@@ -66,6 +68,11 @@ export default function App() {
 
   return (
     <div className="container">
+      {process.env.BUILD_VERSION && (
+        <div style={{ textAlign: 'right' }}>
+          {`v${process.env.BUILD_VERSION}`}
+        </div>
+      )}
       {process.env.LOCAL_BUILD && <Debug />}
       <Box style={{
         margin: 'auto',
