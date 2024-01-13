@@ -76,6 +76,7 @@ export default function App() {
             value={notiTimeWindow}
             onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
+              { value: 0, label: 'On Time' },
               { value: 1, label: '1 min' },
               { value: 2, label: '2 min' },
               { value: 3, label: '3 min' },
