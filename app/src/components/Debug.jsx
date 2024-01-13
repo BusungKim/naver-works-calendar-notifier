@@ -24,7 +24,7 @@ function handleClickNotification() {
     message: 'Click to join the meeting',
     requireInteraction: true,
     type: 'basic',
-    iconUrl: chrome.runtime.getURL('asset/icons8-calendar-96.png'),
+    iconUrl: chrome?.runtime.getURL('asset/icons8-calendar-96.png'),
   });
 }
 

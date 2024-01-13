@@ -1,6 +1,6 @@
 /* global chrome */
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const uniqueSchedules = request.schedules.filter((schedule) => !schedule.parentScheduleId);
 
   chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
@@ -10,12 +10,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function setBadgeText(schedules) {
-  chrome.action.setBadgeText({ text: schedules.length.toString() });
-  chrome.action.setBadgeTextColor({ color: 'white' });
-  chrome.action.setBadgeBackgroundColor({ color: '#28C665' });
+  chrome?.action.setBadgeText({ text: schedules.length.toString() });
+  chrome?.action.setBadgeTextColor({ color: 'white' });
+  chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
-chrome.alarms.onAlarm.addListener(handleAlarm);
+chrome?.alarms.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
@@ -26,7 +26,7 @@ export async function handleAlarm() {
     return;
   }
 
-  chrome.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
+  chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
     .then((result) => {
       const schedules = result['data.schedules'] || [];
       const options = {
@@ -80,21 +80,21 @@ function notify(schedule, options) {
   }
 
   const videoMeetingUrl = getMeetingUrl(schedule);
-  chrome.notifications.create(schedule.scheduleId, {
+  chrome?.notifications.create(schedule.scheduleId, {
     title: schedule.content,
     message: videoMeetingUrl ? 'Click to join the meeting' : 'Time to attend the meeting',
     priority: 2,
     requireInteraction: options.retention === 'forever',
     type: 'basic',
-    iconUrl: chrome.runtime.getURL('asset/icons8-calendar-96.png'),
+    iconUrl: chrome?.runtime.getURL('asset/icons8-calendar-96.png'),
   });
-  chrome.notifications.onClicked.addListener((notificationId) => {
+  chrome?.notifications.onClicked.addListener((notificationId) => {
     console.log('onClicked: ', notificationId);
     chrome?.offscreen?.closeDocument();
     if (videoMeetingUrl) {
-      chrome.tabs.create({ url: videoMeetingUrl, active: true });
+      chrome?.tabs.create({ url: videoMeetingUrl, active: true });
     }
-    chrome.notifications.clear(notificationId);
+    chrome?.notifications.clear(notificationId);
     chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
   });
 }
@@ -138,18 +138,18 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome?.runtime.onInstalled.addListener(() => {
   console.log('onInstalled');
   chrome?.storage?.local.set({
     'setting.sound': 'none',
     'setting.notiRetention': 'forever',
     'setting.notiTimeWindow': 1,
   });
-  chrome.alarms.get('schedule-polling', (alarm) => {
+  chrome?.alarms.get('schedule-polling', (alarm) => {
     console.log('alarm: ', alarm);
     if (!alarm) {
       console.log('no alarm is set so created one');
-      chrome.alarms.create('schedule-polling', {
+      chrome?.alarms.create('schedule-polling', {
         delayInMinutes: 0,
         periodInMinutes: 1,
       });
