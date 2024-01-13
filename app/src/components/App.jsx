@@ -1,8 +1,8 @@
 /* global chrome */
-import { Box, Divider, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { CustomRadioGroup } from './CustomRadioGroup';
 import { Debug } from './Debug';
+import { CustomSelect } from './CustomSelect';
 
 export default function App() {
   const [sound, setSound] = useState('');
@@ -48,11 +48,8 @@ export default function App() {
       }}
       >
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Sound</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="sound"
+          <CustomSelect
+            name="Sound"
             value={sound}
             onChange={(e) => handleChangeSound(e)}
             items={[
@@ -62,14 +59,9 @@ export default function App() {
             ]}
           />
         </Box>
-        <Divider />
-
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Notification Retention</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="noti-retention"
+          <CustomSelect
+            name="Notification Retention"
             value={notiRetention}
             onChange={(e) => handleChangeNotiRetention(e)}
             items={[
@@ -78,14 +70,9 @@ export default function App() {
             ]}
           />
         </Box>
-        <Divider />
-
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Notification TimeWindow</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="noti-time-window"
+          <CustomSelect
+            name="Notification Time Window"
             value={notiTimeWindow}
             onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
