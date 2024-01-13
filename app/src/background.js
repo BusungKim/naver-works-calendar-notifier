@@ -55,6 +55,11 @@ function sendNotification(schedules, options) {
     .filter((s) => {
       const startDate = s.repeatDateList?.length > 0 ? s.repeatDateList[0].startDate : s.startDate;
       const tsDiff = Math.floor(Date.parse(startDate) / 1000) - nowTsSec;
+
+      if (timeWindowMin === 0) {
+        return tsDiff <= 0 && tsDiff > -60;
+      }
+
       return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
     });
 
