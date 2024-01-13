@@ -93,7 +93,7 @@ function notify(schedule, options) {
     });
   }
 
-  const videoMeetingUrl = getMeetingUrl(schedule);
+  const videoMeetingUrl = getVideoMeetingUrl(schedule);
   chrome?.notifications.create(schedule.scheduleId, {
     title: schedule.content,
     message: videoMeetingUrl ? 'Click to join the meeting' : 'Time to attend the meeting',
@@ -104,13 +104,17 @@ function notify(schedule, options) {
   });
   chrome?.notifications.onClicked.addListener((notificationId) => {
     console.log('onClicked: ', notificationId);
-    chrome?.offscreen?.closeDocument();
-    if (videoMeetingUrl) {
-      chrome?.tabs.create({ url: videoMeetingUrl, active: true });
-    }
     chrome?.notifications.clear(notificationId);
-    chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
+    chrome?.offscreen?.closeDocument();
+    openVideoMeeting(videoMeetingUrl);
   });
+}
+
+export function openVideoMeeting(videoMeetingUrl) {
+  if (videoMeetingUrl) {
+    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
+  }
+  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.notifications?.onClosed.addListener((notificationId) => {
@@ -118,7 +122,7 @@ chrome?.notifications?.onClosed.addListener((notificationId) => {
   chrome?.offscreen?.closeDocument();
 });
 
-export function getMeetingUrl(schedule) {
+export function getVideoMeetingUrl(schedule) {
   console.log('getMeetingUrl: ', schedule);
   if (schedule.videoMeeting) {
     return schedule.videoMeeting.link;

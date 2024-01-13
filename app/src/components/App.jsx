@@ -4,18 +4,21 @@ import { Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
+import { getVideoMeetingUrl, openVideoMeeting } from '../background';
 
 export default function App() {
   const [sound, setSound] = useState('');
   const [notiRetention, setNotiRetention] = useState('');
   const [notiTimeWindow, setNotiTimeWindow] = useState('');
+  const [upcomingSchedule, setUpcomingSchedule] = useState({});
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
+    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.schedules'])
       .then((result) => {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
         setNotiTimeWindow(result['setting.notiTimeWindow']);
+        setUpcomingSchedule(getUpcomingSchedule(result['data.schedules']));
       });
   }, []);
 
@@ -38,6 +41,27 @@ export default function App() {
     chrome?.storage?.local.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
       setNotiTimeWindow(nextNotiTimeWindow);
     });
+  }
+
+  function getUpcomingSchedule(schedules = []) {
+    if (schedules.length === 0) {
+      return {};
+    }
+    return schedules[0];
+  }
+
+  function drawGoToMeetingIcon(schedule) {
+    const videoMeetingUrl = getVideoMeetingUrl(schedule);
+    return (
+      <IconButton
+        disabled={!videoMeetingUrl}
+        size="large"
+        color="primary"
+        onClick={() => openVideoMeeting(videoMeetingUrl)}
+      >
+        <Videocam />
+      </IconButton>
+    );
   }
 
   return (
@@ -86,14 +110,13 @@ export default function App() {
         </Box>
         <Box display="flex" alignItems="center" p={1}>
           <TextField
-            disabled
             id="outlined-disabled"
-            label="Next Meeting"
-            value="Meeting title here"
+            label="Upcoming Meeting"
+            size="small"
+            value={upcomingSchedule?.content || 'No more meeting 😀'}
+            helperText={upcomingSchedule?.startDate}
           />
-          <IconButton size="medium" color="primary">
-            <Videocam />
-          </IconButton>
+          {drawGoToMeetingIcon(upcomingSchedule)}
         </Box>
       </Box>
     </div>
