@@ -10,7 +10,12 @@ chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const uniqueSchedules = Object.values(groups)
     .flatMap((schedules) => schedules[schedules.length - 1])
-    .filter((schedule) => nowTsSec - Math.floor(Date.parse(schedule.startDate) / 1000) < 10 * 60);
+    .filter((schedule) => nowTsSec - Math.floor(Date.parse(schedule.startDate) / 1000) < 10 * 60)
+    .map((schedule) => {
+      const newSchedule = schedule;
+      newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
+      return newSchedule;
+    });
 
   chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
     console.log('onMessage - set data.schedules', uniqueSchedules);
