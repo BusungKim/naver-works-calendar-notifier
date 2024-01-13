@@ -18,7 +18,7 @@
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache ../dist",
-    "eslint": "eslint --fix --ext .jsx,.js,.tsx,.ts ./",
+    "eslint": "eslint --fix --ext .jsx,.js,.tsx,.ts src",
     "dev": "parcel",
     "build-local": "npm run clean && cross-env LOCAL_BUILD=true parcel build --no-content-hash --no-optimize",
     "build": "npm run clean && npm run eslint && parcel build --detailed-report --no-source-maps"
