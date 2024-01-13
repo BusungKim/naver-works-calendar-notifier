@@ -1,10 +1,19 @@
 /* global chrome */
 
 chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const uniqueSchedules = request.schedules.filter((schedule) => !schedule.parentScheduleId);
+  const groups = Object.groupBy(request.schedules, (schedule) => {
+    if (!schedule.parentScheduleId) {
+      return schedule.scheduleId;
+    }
+    return schedule.parentScheduleId;
+  });
+  const nowTsSec = Math.floor(Date.now() / 1000);
+  const uniqueSchedules = Object.values(groups)
+    .flatMap((schedules) => schedules[schedules.length - 1])
+    .filter((schedule) => nowTsSec - Math.floor(Date.parse(schedule.startDate) / 1000) < 10 * 60);
 
   chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
-    console.log('onMessage - set data.schedules');
+    console.log('onMessage - set data.schedules', uniqueSchedules);
     setBadgeText(uniqueSchedules);
   });
 });
@@ -109,7 +118,8 @@ chrome?.notifications?.onClosed.addListener((notificationId) => {
   chrome?.offscreen?.closeDocument();
 });
 
-function getMeetingUrl(schedule) {
+export function getMeetingUrl(schedule) {
+  console.log('getMeetingUrl: ', schedule);
   if (schedule.videoMeeting) {
     return schedule.videoMeeting.link;
   }
