@@ -1,5 +1,6 @@
 /* global chrome */
-import { Box } from '@mui/material';
+import { Box, IconButton, TextField } from '@mui/material';
+import { Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
@@ -82,6 +83,17 @@ export default function App() {
               { value: 3, label: '3 min' },
             ]}
           />
+        </Box>
+        <Box display="flex" alignItems="center" p={1}>
+          <TextField
+            disabled
+            id="outlined-disabled"
+            label="Next Meeting"
+            value="Meeting title here"
+          />
+          <IconButton size="medium" color="primary">
+            <Videocam />
+          </IconButton>
         </Box>
       </Box>
     </div>
