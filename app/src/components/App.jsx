@@ -1,20 +1,26 @@
 /* global chrome */
-import { Box, Divider, Typography } from '@mui/material';
+import {
+  Box, IconButton, TextField,
+} from '@mui/material';
+import { Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
-import { CustomRadioGroup } from './CustomRadioGroup';
 import { Debug } from './Debug';
+import { CustomSelect } from './CustomSelect';
+import { getVideoMeetingUrl, openVideoMeeting } from '../background';
 
 export default function App() {
   const [sound, setSound] = useState('');
   const [notiRetention, setNotiRetention] = useState('');
   const [notiTimeWindow, setNotiTimeWindow] = useState('');
+  const [upcomingSchedule, setUpcomingSchedule] = useState({});
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
+    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.schedules'])
       .then((result) => {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
         setNotiTimeWindow(result['setting.notiTimeWindow']);
+        setUpcomingSchedule(getUpcomingSchedule(result['data.schedules']));
       });
   }, []);
 
@@ -39,8 +45,34 @@ export default function App() {
     });
   }
 
+  function getUpcomingSchedule(schedules = []) {
+    if (schedules.length === 0) {
+      return {};
+    }
+    return schedules[0];
+  }
+
+  function drawGoToMeetingIcon(schedule) {
+    const videoMeetingUrl = getVideoMeetingUrl(schedule);
+    return (
+      <IconButton
+        disabled={!videoMeetingUrl}
+        size="large"
+        color="primary"
+        onClick={() => openVideoMeeting(videoMeetingUrl)}
+      >
+        <Videocam />
+      </IconButton>
+    );
+  }
+
   return (
     <div className="container">
+      {process.env.BUILD_VERSION && (
+        <div style={{ textAlign: 'right' }}>
+          {`v${process.env.BUILD_VERSION}`}
+        </div>
+      )}
       {process.env.LOCAL_BUILD && <Debug />}
       <Box style={{
         margin: 'auto',
@@ -48,11 +80,8 @@ export default function App() {
       }}
       >
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Sound</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="sound"
+          <CustomSelect
+            name="Sound"
             value={sound}
             onChange={(e) => handleChangeSound(e)}
             items={[
@@ -62,14 +91,9 @@ export default function App() {
             ]}
           />
         </Box>
-        <Divider />
-
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Notification Retention</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="noti-retention"
+          <CustomSelect
+            name="Notification Retention"
             value={notiRetention}
             onChange={(e) => handleChangeNotiRetention(e)}
             items={[
@@ -78,22 +102,28 @@ export default function App() {
             ]}
           />
         </Box>
-        <Divider />
-
         <Box display="flex" alignItems="center" p={1}>
-          <Typography variant="subtitle1">Notification TimeWindow</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" p={1}>
-          <CustomRadioGroup
-            name="noti-time-window"
+          <CustomSelect
+            name="Notification Time Window"
             value={notiTimeWindow}
             onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
+              { value: 0, label: 'On Time' },
               { value: 1, label: '1 min' },
               { value: 2, label: '2 min' },
               { value: 3, label: '3 min' },
             ]}
           />
+        </Box>
+        <Box display="flex" alignItems="center" p={1}>
+          <TextField
+            id="outlined-disabled"
+            label="Upcoming Meeting"
+            size="small"
+            value={upcomingSchedule?.content || 'No more meeting 😀'}
+            helperText={upcomingSchedule?.startDate}
+          />
+          {drawGoToMeetingIcon(upcomingSchedule)}
         </Box>
       </Box>
     </div>

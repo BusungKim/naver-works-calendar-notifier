@@ -1,21 +1,35 @@
 /* global chrome */
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const uniqueSchedules = request.schedules.filter((schedule) => !schedule.parentScheduleId);
+chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const groups = Object.groupBy(request.schedules, (schedule) => {
+    if (!schedule.parentScheduleId) {
+      return schedule.scheduleId;
+    }
+    return schedule.parentScheduleId;
+  });
+  const nowTsSec = Math.floor(Date.now() / 1000);
+  const uniqueSchedules = Object.values(groups)
+    .flatMap((schedules) => schedules[schedules.length - 1])
+    .filter((schedule) => nowTsSec - Math.floor(Date.parse(schedule.startDate) / 1000) < 10 * 60)
+    .map((schedule) => {
+      const newSchedule = schedule;
+      newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
+      return newSchedule;
+    });
 
   chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
-    console.log('onMessage - set data.schedules');
+    console.log('onMessage - set data.schedules', uniqueSchedules);
     setBadgeText(uniqueSchedules);
   });
 });
 
 function setBadgeText(schedules) {
-  chrome.action.setBadgeText({ text: schedules.length.toString() });
-  chrome.action.setBadgeTextColor({ color: 'white' });
-  chrome.action.setBadgeBackgroundColor({ color: '#28C665' });
+  chrome?.action.setBadgeText({ text: schedules.length.toString() });
+  chrome?.action.setBadgeTextColor({ color: 'white' });
+  chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
-chrome.alarms.onAlarm.addListener(handleAlarm);
+chrome?.alarms.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
@@ -26,7 +40,7 @@ export async function handleAlarm() {
     return;
   }
 
-  chrome.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
+  chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
     .then((result) => {
       const schedules = result['data.schedules'] || [];
       const options = {
@@ -55,6 +69,11 @@ function sendNotification(schedules, options) {
     .filter((s) => {
       const startDate = s.repeatDateList?.length > 0 ? s.repeatDateList[0].startDate : s.startDate;
       const tsDiff = Math.floor(Date.parse(startDate) / 1000) - nowTsSec;
+
+      if (timeWindowMin === 0) {
+        return tsDiff <= 0 && tsDiff > -60;
+      }
+
       return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
     });
 
@@ -79,24 +98,28 @@ function notify(schedule, options) {
     });
   }
 
-  const videoMeetingUrl = getMeetingUrl(schedule);
-  chrome.notifications.create(schedule.scheduleId, {
+  const videoMeetingUrl = getVideoMeetingUrl(schedule);
+  chrome?.notifications.create(schedule.scheduleId, {
     title: schedule.content,
     message: videoMeetingUrl ? 'Click to join the meeting' : 'Time to attend the meeting',
     priority: 2,
     requireInteraction: options.retention === 'forever',
     type: 'basic',
-    iconUrl: chrome.runtime.getURL('asset/icons8-calendar-96.png'),
+    iconUrl: chrome?.runtime.getURL('asset/icons8-calendar-96.png'),
   });
-  chrome.notifications.onClicked.addListener((notificationId) => {
+  chrome?.notifications.onClicked.addListener((notificationId) => {
     console.log('onClicked: ', notificationId);
+    chrome?.notifications.clear(notificationId);
     chrome?.offscreen?.closeDocument();
-    if (videoMeetingUrl) {
-      chrome.tabs.create({ url: videoMeetingUrl, active: true });
-    }
-    chrome.notifications.clear(notificationId);
-    chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
+    openVideoMeeting(videoMeetingUrl);
   });
+}
+
+export function openVideoMeeting(videoMeetingUrl) {
+  if (videoMeetingUrl) {
+    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
+  }
+  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.notifications?.onClosed.addListener((notificationId) => {
@@ -104,7 +127,8 @@ chrome?.notifications?.onClosed.addListener((notificationId) => {
   chrome?.offscreen?.closeDocument();
 });
 
-function getMeetingUrl(schedule) {
+export function getVideoMeetingUrl(schedule) {
+  console.log('getMeetingUrl: ', schedule);
   if (schedule.videoMeeting) {
     return schedule.videoMeeting.link;
   }
@@ -138,18 +162,18 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome?.runtime.onInstalled.addListener(() => {
   console.log('onInstalled');
   chrome?.storage?.local.set({
     'setting.sound': 'none',
     'setting.notiRetention': 'forever',
     'setting.notiTimeWindow': 1,
   });
-  chrome.alarms.get('schedule-polling', (alarm) => {
+  chrome?.alarms.get('schedule-polling', (alarm) => {
     console.log('alarm: ', alarm);
     if (!alarm) {
       console.log('no alarm is set so created one');
-      chrome.alarms.create('schedule-polling', {
+      chrome?.alarms.create('schedule-polling', {
         delayInMinutes: 0,
         periodInMinutes: 1,
       });
