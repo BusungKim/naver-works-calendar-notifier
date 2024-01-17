@@ -120,6 +120,7 @@ export default function App() {
             id="outlined-disabled"
             label="Upcoming Meeting"
             size="small"
+            disabled
             value={upcomingSchedule?.content || 'No more meeting 😀'}
             helperText={upcomingSchedule?.startDate}
           />
