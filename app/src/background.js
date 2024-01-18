@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* global chrome */
 
 chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -10,7 +11,7 @@ chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const uniqueSchedules = Object.values(groups)
     .flatMap((schedules) => schedules[schedules.length - 1])
-    .filter((schedule) => nowTsSec - Math.floor(Date.parse(schedule.startDate) / 1000) < 10 * 60)
+    .filter((schedule) => nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) < 10 * 60)
     .map((schedule) => {
       const newSchedule = schedule;
       newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
@@ -67,7 +68,7 @@ function sendNotification(schedules, options) {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const alarmNeededSchedules = schedules
     .filter((s) => {
-      const startDate = s.repeatDateList?.length > 0 ? s.repeatDateList[0].startDate : s.startDate;
+      const startDate = getStartDate(s);
       const tsDiff = Math.floor(Date.parse(startDate) / 1000) - nowTsSec;
 
       if (timeWindowMin === 0) {
@@ -78,6 +79,10 @@ function sendNotification(schedules, options) {
     });
 
   alarmNeededSchedules.forEach((schedule) => notify(schedule, options));
+}
+
+function getStartDate(schedule) {
+  return schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate;
 }
 
 const soundAssetMap = {
