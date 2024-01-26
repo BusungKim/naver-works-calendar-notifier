@@ -10,11 +10,16 @@ chrome?.runtime.onMessage.addListener((request) => {
   });
   const nowTsSec = Math.floor(Date.now() / 1000);
   const candidateSchedules = Object.values(groups)
-    .flatMap((schedules) => schedules[schedules.length - 1])
+    .flatMap(selectEffectiveAmongRepetition)
+    .map(preProcess)
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
-    .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
+    .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
     .map(postProcess);
+
+  candidateSchedules.forEach((schedule) => {
+    console.log(schedule.content, schedule.fixedStartDate);
+  });
 
   chrome?.storage?.local.set({ 'data.schedules': candidateSchedules }).then(() => {
     console.log('onMessage - set data.schedules', candidateSchedules);
@@ -22,8 +27,22 @@ chrome?.runtime.onMessage.addListener((request) => {
   });
 });
 
+function selectEffectiveAmongRepetition(schedules) {
+  if (schedules[0].repeatDateList?.length > 0) {
+    return schedules[0];
+  }
+  return schedules[schedules.length - 1];
+}
+
+function preProcess(schedule) {
+  return {
+    fixedStartDate: schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate,
+    ...schedule,
+  };
+}
+
 function isOutdated(nowTsSec, schedule) {
-  return nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) >= 10 * 60;
+  return nowTsSec - Math.floor(Date.parse(schedule.fixedStartDate) / 1000) >= 10 * 60;
 }
 
 function isRejected(schedule) {
@@ -79,23 +98,16 @@ function sendNotification(schedules, options) {
   const timeWindowMin = parseInt(options.timeWindow, 10);
 
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const alarmNeededSchedules = schedules
-    .filter((s) => {
-      const startDate = getStartDate(s);
-      const tsDiff = Math.floor(Date.parse(startDate) / 1000) - nowTsSec;
+  const alarmNeededSchedules = schedules.filter((s) => {
+    const tsDiff = Math.floor(Date.parse(s.fixedStartDate) / 1000) - nowTsSec;
 
-      if (timeWindowMin === 0) {
-        return tsDiff <= 0 && tsDiff > -60;
-      }
-
-      return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
-    });
+    if (timeWindowMin === 0) {
+      return tsDiff <= 0 && tsDiff > -60;
+    }
+    return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
+  });
 
   alarmNeededSchedules.forEach((schedule) => notify(schedule, options));
-}
-
-function getStartDate(schedule) {
-  return schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate;
 }
 
 const soundAssetMap = {
