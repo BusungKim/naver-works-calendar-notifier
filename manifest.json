@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NAVER WORKS Calendar Notifier",
   "description": "This extension sends notifications to you at your meeting schedule.",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "action": {
     "default_popup": "dist/index.html",
     "default_icon": "asset/icons8-calendar-96.png"
