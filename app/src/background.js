@@ -9,16 +9,16 @@ chrome?.runtime.onMessage.addListener((request) => {
     return schedule.parentScheduleId;
   });
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const uniqueSchedules = Object.values(groups)
+  const candidateSchedules = Object.values(groups)
     .flatMap((schedules) => schedules[schedules.length - 1])
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
     .map(postProcess);
 
-  chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
-    console.log('onMessage - set data.schedules', uniqueSchedules);
-    setBadgeText(uniqueSchedules);
+  chrome?.storage?.local.set({ 'data.schedules': candidateSchedules }).then(() => {
+    console.log('onMessage - set data.schedules', candidateSchedules);
+    setBadgeText(candidateSchedules);
   });
 });
 
