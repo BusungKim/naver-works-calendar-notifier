@@ -111,8 +111,8 @@ function sendNotification(schedules, options) {
 
 const soundAssetMap = {
   none: undefined,
-  cp77: 'asset/offscreen/sound/cp77.mp3',
-  ping: 'asset/offscreen/sound/ping.wav',
+  cp77: 'asset/sound/cp77.mp3',
+  ping: 'asset/sound/ping.mp3',
 };
 
 export function notify(schedule, options) {
