@@ -89,6 +89,7 @@ export default function App() {
               { value: 'none', label: 'Off' },
               { value: 'cp77', label: 'Cyberpunk 2077' },
               { value: 'ping', label: 'Ping' },
+              { value: 'pikachu', label: 'Pikachu' },
             ]}
           />
         </Box>

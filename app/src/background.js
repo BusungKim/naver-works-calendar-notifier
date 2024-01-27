@@ -113,6 +113,7 @@ const soundAssetMap = {
   none: undefined,
   cp77: 'asset/sound/cp77.mp3',
   ping: 'asset/sound/ping.mp3',
+  pikachu: 'asset/sound/pikachu.m4a',
 };
 
 export function notify(schedule, options) {
