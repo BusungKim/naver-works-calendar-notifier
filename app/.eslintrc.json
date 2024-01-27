@@ -21,6 +21,7 @@
         "no-use-before-define": ["off"],
         "import/prefer-default-export": ["warn"],
         "react/prop-types": ["off"],
-        "react/jsx-no-bind": ["warn"]
+        "react/jsx-no-bind": ["warn"],
+        "max-len": ["off"]
     }
 }

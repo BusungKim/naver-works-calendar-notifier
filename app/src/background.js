@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /* global chrome */
 
 chrome?.runtime.onMessage.addListener((request) => {
