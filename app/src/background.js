@@ -1,5 +1,7 @@
 /* global chrome */
 
+import { getTodaySchedules } from './common';
+
 chrome?.runtime.onMessage.addListener(async (request) => {
   if (!request.initialData) {
     return;
@@ -15,35 +17,33 @@ chrome?.runtime.onMessage.addListener(async (request) => {
   console.log('set data.initialData: ', request.initialData);
 });
 
-chrome?.runtime.onMessage.addListener((request) => {
+chrome?.runtime.onMessage.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
 
-  const groups = Object.groupBy(request.schedules, (schedule) => {
+  await chrome?.storage?.local.set({ 'data.schedules': request.schedules });
+  console.log('onMessage - set data.schedules', request.schedules);
+  setBadgeText(getFilteredSchedules(request.schedules));
+});
+
+function getFilteredSchedules(schedules) {
+  const groups = Object.groupBy(schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
     }
     return schedule.parentScheduleId;
   });
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const candidateSchedules = Object.values(groups)
+
+  return Object.values(groups)
     .flatMap(selectEffectiveAmongRepetition)
     .map(preProcess)
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
     .map(postProcess);
-
-  candidateSchedules.forEach((schedule) => {
-    console.log(schedule.content, schedule.fixedStartDate);
-  });
-
-  chrome?.storage?.local.set({ 'data.schedules': candidateSchedules }).then(() => {
-    console.log('onMessage - set data.schedules', candidateSchedules);
-    setBadgeText(candidateSchedules);
-  });
-});
+}
 
 function selectEffectiveAmongRepetition(schedules) {
   if (schedules[0].repeatDateList?.length > 0) {
@@ -91,8 +91,19 @@ export async function handleAlarm() {
     return;
   }
 
-  const result = await chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
-  const schedules = result['data.schedules'] || [];
+  const result = await chrome?.storage.local.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+
+  let schedules;
+  try {
+    schedules = await getTodaySchedules(result['data.initialData'], { sameOrigin: false });
+  } catch (e) {
+    // fallback
+    console.warn('fallback getTodaySchedules', e);
+    schedules = result['data.schedules'] || [];
+  }
+  schedules = getFilteredSchedules(schedules);
+  setBadgeText(schedules);
+
   const options = {
     sound: result['setting.sound'],
     retention: result['setting.notiRetention'],
