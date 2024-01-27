@@ -16,12 +16,12 @@ export default function App() {
   const [upcomingSchedule, setUpcomingSchedule] = useState({});
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.schedules'])
+    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule'])
       .then((result) => {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
         setNotiTimeWindow(result['setting.notiTimeWindow']);
-        setUpcomingSchedule(getUpcomingSchedule(result['data.schedules']));
+        setUpcomingSchedule(result['data.upcomingSchedule']);
       });
   }, []);
 
@@ -44,13 +44,6 @@ export default function App() {
     chrome?.storage?.local.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
       setNotiTimeWindow(nextNotiTimeWindow);
     });
-  }
-
-  function getUpcomingSchedule(schedules = []) {
-    if (schedules.length === 0) {
-      return {};
-    }
-    return schedules[0];
   }
 
   function drawGoToMeetingIcon(schedule) {
