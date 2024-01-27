@@ -15,7 +15,7 @@ export async function getTodaySchedules(initialData, options) {
   });
 
   if (!res.ok) {
-    return [];
+    throw new Error('failed to get today schedules');
   }
 
   const responseBody = await res.json();
