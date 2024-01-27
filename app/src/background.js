@@ -11,7 +11,7 @@ chrome?.runtime.onMessage.addListener((request) => {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const uniqueSchedules = Object.values(groups)
     .flatMap((schedules) => schedules[schedules.length - 1])
-    .filter((schedule) => nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) < 10 * 60)
+    .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
     .map((schedule) => {
       const newSchedule = { ...schedule };
@@ -24,6 +24,10 @@ chrome?.runtime.onMessage.addListener((request) => {
     setBadgeText(uniqueSchedules);
   });
 });
+
+function isOutdated(nowTsSec, schedule) {
+  return nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) >= 10 * 60;
+}
 
 function setBadgeText(schedules) {
   chrome?.action.setBadgeText({ text: schedules.length.toString() });
