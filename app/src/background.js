@@ -115,7 +115,7 @@ const soundAssetMap = {
   ping: 'asset/offscreen/sound/ping.wav',
 };
 
-function notify(schedule, options) {
+export function notify(schedule, options) {
   console.log('notify - ', options);
 
   const soundAssetPath = soundAssetMap[options.sound];
