@@ -24,8 +24,17 @@ chrome?.runtime?.onMessage.addListener(async (request) => {
 
   await chrome?.storage?.local.set({ 'data.schedules': request.schedules });
   console.log('onMessage - set data.schedules', request.schedules);
-  setBadgeText(getFilteredSchedules(request.schedules));
+
+  getFilteredSchedulesWithSideEffect(request.schedules);
 });
+
+function getFilteredSchedulesWithSideEffect(schedules) {
+  const filteredSchedules = getFilteredSchedules(schedules);
+  setBadgeText(filteredSchedules);
+  setUpcomingSchedule(filteredSchedules);
+
+  return filteredSchedules;
+}
 
 function getFilteredSchedules(schedules) {
   const groups = Object.groupBy(schedules, (schedule) => {
@@ -80,6 +89,14 @@ function setBadgeText(schedules) {
   chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
+function setUpcomingSchedule(schedules) {
+  let upcomingSchedule = {};
+  if (schedules.length > 0) {
+    [upcomingSchedule] = schedules;
+  }
+  chrome?.storage?.local.set({ 'data.upcomingSchedule': upcomingSchedule });
+}
+
 chrome?.alarms?.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
@@ -101,8 +118,7 @@ export async function handleAlarm() {
     console.warn('fallback getTodaySchedules', e);
     schedules = result['data.schedules'] || [];
   }
-  schedules = getFilteredSchedules(schedules);
-  setBadgeText(schedules);
+  schedules = getFilteredSchedulesWithSideEffect(schedules);
 
   const options = {
     sound: result['setting.sound'],
