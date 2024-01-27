@@ -86,7 +86,7 @@ export default function App() {
             value={sound}
             onChange={(e) => handleChangeSound(e)}
             items={[
-              { value: 'none', label: 'None' },
+              { value: 'none', label: 'Off' },
               { value: 'cp77', label: 'Cyberpunk 2077' },
               { value: 'ping', label: 'Ping' },
             ]}
