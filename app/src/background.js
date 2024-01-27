@@ -12,6 +12,7 @@ chrome?.runtime.onMessage.addListener((request) => {
   const uniqueSchedules = Object.values(groups)
     .flatMap((schedules) => schedules[schedules.length - 1])
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
+    .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
     .map((schedule) => {
       const newSchedule = { ...schedule };
@@ -27,6 +28,10 @@ chrome?.runtime.onMessage.addListener((request) => {
 
 function isOutdated(nowTsSec, schedule) {
   return nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) >= 10 * 60;
+}
+
+function isRejected(schedule) {
+  return schedule.appointment?.responseState === 'reject';
 }
 
 function setBadgeText(schedules) {
