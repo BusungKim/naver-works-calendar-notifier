@@ -3,21 +3,6 @@
 import { getTodaySchedules } from './common';
 
 chrome?.runtime?.onMessage.addListener(async (request) => {
-  if (!request.initialData) {
-    return;
-  }
-
-  const res = await chrome?.storage?.local.get('data.initialData');
-  if (res.initialData) {
-    console.log('data.initialData is already set', res.initialData);
-    return;
-  }
-
-  await chrome?.storage?.local.set({ 'data.initialData': request.initialData });
-  console.log('set data.initialData: ', request.initialData);
-});
-
-chrome?.runtime?.onMessage.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
@@ -112,7 +97,7 @@ export async function handleAlarm() {
 
   let schedules;
   try {
-    schedules = await getTodaySchedules(result['data.initialData'], { sameOrigin: false });
+    schedules = await getTodaySchedules({ sameOrigin: false });
   } catch (e) {
     // fallback
     console.warn('fallback getTodaySchedules', e);

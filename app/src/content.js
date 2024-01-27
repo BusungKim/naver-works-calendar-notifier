@@ -2,9 +2,8 @@
 import { getTodaySchedules } from './common';
 
 const initialData = parseInitialDataText();
-console.log('data: ', initialData);
-
-chrome?.runtime?.sendMessage({ initialData });
+chrome?.storage?.local.set({ 'data.initialData': initialData })
+  .then(sendMessageToBackground);
 
 function parseInitialDataText() {
   const scripts = document.body.getElementsByTagName('script');
@@ -20,13 +19,11 @@ function parseInitialDataText() {
   };
 }
 
-sendMessageToBackground();
-
 const dataPollingIntervalSec = 60;
 setInterval(sendMessageToBackground, dataPollingIntervalSec * 1_000);
 
 async function sendMessageToBackground() {
-  const nextTodaySchedules = await getTodaySchedules(initialData, { sameOrigin: true });
+  const nextTodaySchedules = await getTodaySchedules({ sameOrigin: true });
   await chrome?.runtime?.sendMessage({ schedules: nextTodaySchedules });
   console.log('done sending message');
 }

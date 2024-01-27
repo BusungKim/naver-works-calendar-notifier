@@ -1,13 +1,16 @@
+/* global chrome */
 import moment from 'moment/moment';
 
-export async function getTodaySchedules(initialData, options) {
+export async function getTodaySchedules(options) {
+  const r = await chrome?.storage?.local.get(['data.initialData']);
+  const initialData = r['data.initialData'];
+  if (!initialData) {
+    throw new Error('no initial data');
+  }
+
+  const requestUrl = options.sameOrigin ? '/ajax/GetScheduleList' : `${initialData.serverUrl}/ajax/GetScheduleList`;
   const timeStamp = new Date().getTime();
   const scheduleQueryRange = [`${moment(timeStamp).format('YYYY-MM-DD HH:mm:ss')}`, `${moment(timeStamp).format('YYYY-MM-DD 23:59:59')}`];
-
-  let requestUrl = '/ajax/GetScheduleList';
-  if (!options.sameOrigin) {
-    requestUrl = `${initialData.serverUrl}/ajax/GetScheduleList`;
-  }
 
   const res = await fetch(requestUrl, {
     body: makeRequestBody(initialData, scheduleQueryRange),
@@ -17,8 +20,8 @@ export async function getTodaySchedules(initialData, options) {
   if (!res.ok) {
     throw new Error('failed to get today schedules');
   }
-
   const responseBody = await res.json();
+
   return responseBody.retScheduleList.returnValue;
 }
 
