@@ -10,9 +10,9 @@ import { getVideoMeetingUrl, openVideoMeeting } from '../background';
 import moment from 'moment';
 
 export default function App() {
-  const [sound, setSound] = useState('');
-  const [notiRetention, setNotiRetention] = useState('');
-  const [notiTimeWindow, setNotiTimeWindow] = useState('');
+  const [sound, setSound] = useState('none');
+  const [notiRetention, setNotiRetention] = useState('forever');
+  const [notiTimeWindow, setNotiTimeWindow] = useState('0');
   const [upcomingSchedule, setUpcomingSchedule] = useState({});
 
   useEffect(() => {
