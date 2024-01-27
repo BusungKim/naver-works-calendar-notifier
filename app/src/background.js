@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* global chrome */
 
-chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome?.runtime.onMessage.addListener((request) => {
   const groups = Object.groupBy(request.schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
@@ -14,7 +14,7 @@ chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
     .filter((schedule) => nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) < 10 * 60)
     .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
     .map((schedule) => {
-      const newSchedule = schedule;
+      const newSchedule = { ...schedule };
       newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
       return newSchedule;
     });
