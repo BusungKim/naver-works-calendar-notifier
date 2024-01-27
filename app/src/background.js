@@ -17,6 +17,7 @@ function getFilteredSchedulesWithSideEffect(schedules) {
   const filteredSchedules = getFilteredSchedules(schedules);
   setBadgeText(filteredSchedules);
   setUpcomingSchedule(filteredSchedules);
+  setLastSyncedAt(Date.now());
 
   return filteredSchedules;
 }
@@ -80,6 +81,10 @@ function setUpcomingSchedule(schedules) {
     [upcomingSchedule] = schedules;
   }
   chrome?.storage?.local.set({ 'data.upcomingSchedule': upcomingSchedule });
+}
+
+function setLastSyncedAt(timestamp) {
+  chrome?.storage?.local.set({ 'data.lastSyncedAt': timestamp });
 }
 
 chrome?.alarms?.onAlarm.addListener(handleAlarm);
