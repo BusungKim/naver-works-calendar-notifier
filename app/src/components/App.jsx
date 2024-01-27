@@ -1,8 +1,8 @@
 /* global chrome */
 import {
-  Box, IconButton, TextField,
+  Box, FormControl, IconButton, TextField, Typography,
 } from '@mui/material';
-import { Videocam } from '@mui/icons-material';
+import { Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
@@ -14,6 +14,7 @@ export default function App() {
   const [notiRetention, setNotiRetention] = useState('forever');
   const [notiTimeWindow, setNotiTimeWindow] = useState('0');
   const [upcomingSchedule, setUpcomingSchedule] = useState({});
+  const [lastSyncedAt, setLastSyncedAt] = useState(0);
 
   useEffect(() => {
     chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule'])
@@ -23,6 +24,15 @@ export default function App() {
         setNotiTimeWindow(result['setting.notiTimeWindow']);
         setUpcomingSchedule(result['data.upcomingSchedule']);
       });
+  }, []);
+
+  useEffect(() => {
+    async function updateLastSyncedAt() {
+      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']);
+      setLastSyncedAt(r ? r['data.lastSyncedAt'] : 0);
+    }
+    updateLastSyncedAt();
+    setInterval(updateLastSyncedAt, 10_000);
   }, []);
 
   function handleChangeSound(nextSound) {
@@ -58,6 +68,10 @@ export default function App() {
         <Videocam />
       </IconButton>
     );
+  }
+
+  function needRefresh() {
+    return Date.now() - lastSyncedAt > 5 * 60 * 1000;
   }
 
   return (
@@ -121,6 +135,21 @@ export default function App() {
           />
           {drawGoToMeetingIcon(upcomingSchedule)}
         </Box>
+        <Box display="flex" alignItems="center" mt={-1}>
+          <IconButton
+            size="large"
+            color={needRefresh() ? 'error' : 'success'}
+            onClick={() => {}}
+          >
+            <Refresh />
+          </IconButton>
+          <Typography
+            variant="caption"
+            color="gray"
+          >
+            {prettyLastSyncedAt(lastSyncedAt)}
+          </Typography>
+        </Box>
       </Box>
     </div>
   );
@@ -140,4 +169,12 @@ function prettyUpcomingStartDate(startDate) {
   const minute = Math.ceil((seconds % 3600) / 60);
 
   return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
+}
+
+function prettyLastSyncedAt(lastSyncedAt) {
+  if (lastSyncedAt === 0) {
+    return '👈 Not synced yet';
+  }
+
+  return `Synced at ${moment(lastSyncedAt).format('H:mm A')}`;
 }
