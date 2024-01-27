@@ -2,7 +2,7 @@
 
 import { getTodaySchedules } from './common';
 
-chrome?.runtime.onMessage.addListener(async (request) => {
+chrome?.runtime?.onMessage.addListener(async (request) => {
   if (!request.initialData) {
     return;
   }
@@ -17,7 +17,7 @@ chrome?.runtime.onMessage.addListener(async (request) => {
   console.log('set data.initialData: ', request.initialData);
 });
 
-chrome?.runtime.onMessage.addListener(async (request) => {
+chrome?.runtime?.onMessage.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
@@ -80,7 +80,7 @@ function setBadgeText(schedules) {
   chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
-chrome?.alarms.onAlarm.addListener(handleAlarm);
+chrome?.alarms?.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
@@ -163,7 +163,7 @@ export function notify(schedule, options) {
     priority: 2,
     requireInteraction: options.retention === 'forever',
     type: 'basic',
-    iconUrl: chrome?.runtime.getURL('asset/icons8-calendar-96.png'),
+    iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
   });
   chrome?.notifications.onClicked.addListener((notificationId) => {
     console.log('onClicked: ', notificationId);
@@ -220,18 +220,18 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome?.runtime.onInstalled.addListener(() => {
+chrome?.runtime?.onInstalled.addListener(() => {
   console.log('onInstalled');
   chrome?.storage?.local.set({
     'setting.sound': 'none',
     'setting.notiRetention': 'forever',
     'setting.notiTimeWindow': 1,
   });
-  chrome?.alarms.get('schedule-polling', (alarm) => {
+  chrome?.alarms?.get('schedule-polling', (alarm) => {
     console.log('alarm: ', alarm);
     if (!alarm) {
       console.log('no alarm is set so created one');
-      chrome?.alarms.create('schedule-polling', {
+      chrome?.alarms?.create('schedule-polling', {
         delayInMinutes: 0,
         periodInMinutes: 1,
       });
