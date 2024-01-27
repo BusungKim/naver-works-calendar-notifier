@@ -14,11 +14,7 @@ chrome?.runtime.onMessage.addListener((request) => {
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
-    .map((schedule) => {
-      const newSchedule = { ...schedule };
-      newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
-      return newSchedule;
-    });
+    .map(postProcess);
 
   chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
     console.log('onMessage - set data.schedules', uniqueSchedules);
@@ -32,6 +28,13 @@ function isOutdated(nowTsSec, schedule) {
 
 function isRejected(schedule) {
   return schedule.appointment?.responseState === 'reject';
+}
+
+function postProcess(schedule) {
+  const ret = { ...schedule };
+  ret.content = ret.content.replace('&lt;', '<').replace('&gt;', '>');
+
+  return ret;
 }
 
 function setBadgeText(schedules) {
