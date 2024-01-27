@@ -69,7 +69,7 @@ export default function App() {
   return (
     <div className="container">
       {process.env.BUILD_VERSION && (
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', paddingRight: '8px' }}>
           {`v${process.env.BUILD_VERSION}`}
         </div>
       )}
