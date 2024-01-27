@@ -1,6 +1,25 @@
 /* global chrome */
 
+chrome?.runtime.onMessage.addListener(async (request) => {
+  if (!request.initialData) {
+    return;
+  }
+
+  const res = await chrome?.storage?.local.get('data.initialData');
+  if (res.initialData) {
+    console.log('data.initialData is already set', res.initialData);
+    return;
+  }
+
+  await chrome?.storage?.local.set({ 'data.initialData': request.initialData });
+  console.log('set data.initialData: ', request.initialData);
+});
+
 chrome?.runtime.onMessage.addListener((request) => {
+  if (!request.schedules) {
+    return;
+  }
+
   const groups = Object.groupBy(request.schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
