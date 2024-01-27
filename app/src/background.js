@@ -91,17 +91,15 @@ export async function handleAlarm() {
     return;
   }
 
-  chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
-    .then((result) => {
-      const schedules = result['data.schedules'] || [];
-      const options = {
-        sound: result['setting.sound'],
-        retention: result['setting.notiRetention'],
-        timeWindow: result['setting.notiTimeWindow'],
-      };
-      console.log('onAlarm: ', schedules, options);
-      sendNotification(schedules, options);
-    });
+  const result = await chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+  const schedules = result['data.schedules'] || [];
+  const options = {
+    sound: result['setting.sound'],
+    retention: result['setting.notiRetention'],
+    timeWindow: result['setting.notiTimeWindow'],
+  };
+  console.log('onAlarm: ', schedules, options);
+  sendNotification(schedules, options);
 }
 
 async function getPausedUntilTs() {
