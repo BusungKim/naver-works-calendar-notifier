@@ -17,13 +17,14 @@ export default function App() {
   const [lastSyncedAt, setLastSyncedAt] = useState(0);
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule'])
-      .then((result) => {
-        setSound(result['setting.sound']);
-        setNotiRetention(result['setting.notiRetention']);
-        setNotiTimeWindow(result['setting.notiTimeWindow']);
-        setUpcomingSchedule(result['data.upcomingSchedule']);
-      });
+    async function init() {
+      const result = await chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
+      setSound(result['setting.sound']);
+      setNotiRetention(result['setting.notiRetention']);
+      setNotiTimeWindow(result['setting.notiTimeWindow']);
+      setUpcomingSchedule(result['data.upcomingSchedule']);
+    }
+    init();
   }, []);
 
   useEffect(() => {
