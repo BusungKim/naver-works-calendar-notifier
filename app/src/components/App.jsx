@@ -15,6 +15,7 @@ export default function App() {
   const [notiTimeWindow, setNotiTimeWindow] = useState('0');
   const [upcomingSchedule, setUpcomingSchedule] = useState({});
   const [lastSyncedAt, setLastSyncedAt] = useState(0);
+  const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
     async function init() {
@@ -29,12 +30,20 @@ export default function App() {
 
   useEffect(() => {
     async function updateLastSyncedAt() {
-      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']);
-      setLastSyncedAt(r ? r['data.lastSyncedAt'] : 0);
+      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']) || {};
+      setLastSyncedAt(r['data.lastSyncedAt'] || 0);
     }
     updateLastSyncedAt();
-    setInterval(updateLastSyncedAt, 10_000);
+    setInterval(updateLastSyncedAt, 1_000);
   }, []);
+
+  useEffect(() => {
+    if (needRefresh(lastSyncedAt)) {
+      setInfoText('👈 Need to sync schedules');
+      return;
+    }
+    setInfoText(`Synced at ${moment(lastSyncedAt).format('H:mm A')}`);
+  }, [lastSyncedAt]);
 
   function handleChangeSound(nextSound) {
     console.log('handleChangeSound: ', nextSound);
@@ -58,13 +67,14 @@ export default function App() {
   }
 
   async function handleClickRefresh() {
-    const r = await chrome?.storage?.local.get(['data.initialData']);
-    const calendarPageUrl = r ? r['data.initialData'].serverUrl : '';
+    const r = await chrome?.storage?.local.get(['data.initialData']) || {};
+    const initialData = r['data.initialData'] || {};
 
-    if (calendarPageUrl === '') {
+    if (!initialData.serverUrl) {
+      setInfoText('Please open your calendar manually 📅');
       return;
     }
-    chrome?.tabs?.create({ url: calendarPageUrl, active: true });
+    chrome?.tabs?.create({ url: initialData.serverUrl, active: true });
   }
 
   function drawGoToMeetingIcon(schedule) {
@@ -157,7 +167,7 @@ export default function App() {
             variant="caption"
             color="gray"
           >
-            {prettyLastSyncedAt(lastSyncedAt)}
+            {infoText}
           </Typography>
         </Box>
       </Box>
@@ -182,13 +192,5 @@ function prettyUpcomingStartDate(startDate) {
 }
 
 function needRefresh(lastSyncedAt) {
-  return Date.now() - lastSyncedAt > 60 * 1000;
-}
-
-function prettyLastSyncedAt(lastSyncedAt) {
-  if (needRefresh(lastSyncedAt)) {
-    return '👈 Not synced yet';
-  }
-
-  return `Synced at ${moment(lastSyncedAt).format('H:mm A')}`;
+  return Date.now() - lastSyncedAt > 10 * 60 * 1000;
 }
