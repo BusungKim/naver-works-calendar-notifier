@@ -6,12 +6,13 @@ chrome?.runtime?.onMessage.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
-
-  await chrome?.storage?.local.set({ 'data.schedules': request.schedules });
-  console.log('onMessage - set data.schedules', request.schedules);
-
+  cacheSchedules(request.schedules);
   getFilteredSchedulesWithSideEffect(request.schedules);
 });
+
+async function cacheSchedules(schedules) {
+  await chrome?.storage?.local.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
+}
 
 function getFilteredSchedulesWithSideEffect(schedules) {
   const filteredSchedules = getFilteredSchedules(schedules);
@@ -82,10 +83,6 @@ function setUpcomingSchedule(schedules) {
   chrome?.storage?.local.set({ 'data.upcomingSchedule': upcomingSchedule });
 }
 
-function setLastSyncedAt(timestamp) {
-  chrome?.storage?.local.set({ 'data.lastSyncedAt': timestamp });
-}
-
 chrome?.alarms?.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
@@ -102,7 +99,7 @@ export async function handleAlarm() {
   let schedules;
   try {
     schedules = await getTodaySchedules({ sameOrigin: false });
-    setLastSyncedAt(Date.now());
+    cacheSchedules(schedules);
   } catch (e) {
     // fallback
     console.warn('fallback getTodaySchedules', e);
