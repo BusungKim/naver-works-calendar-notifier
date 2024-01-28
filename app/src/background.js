@@ -243,4 +243,5 @@ chrome?.runtime?.onInstalled.addListener(() => {
       });
     }
   });
+  handleAlarm();
 });
