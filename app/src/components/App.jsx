@@ -168,7 +168,7 @@ function prettyUpcomingStartDate(startDate) {
   }
 
   const hour = Math.floor(seconds / 3600);
-  const minute = Math.ceil((seconds % 3600) / 60);
+  const minute = Math.floor((seconds % 3600) / 60);
 
   return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
 }
