@@ -17,7 +17,6 @@ function getFilteredSchedulesWithSideEffect(schedules) {
   const filteredSchedules = getFilteredSchedules(schedules);
   setBadgeText(filteredSchedules);
   setUpcomingSchedule(filteredSchedules);
-  setLastSyncedAt(Date.now());
 
   return filteredSchedules;
 }
@@ -103,6 +102,7 @@ export async function handleAlarm() {
   let schedules;
   try {
     schedules = await getTodaySchedules({ sameOrigin: false });
+    setLastSyncedAt(Date.now());
   } catch (e) {
     // fallback
     console.warn('fallback getTodaySchedules', e);
