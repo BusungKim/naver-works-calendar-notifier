@@ -124,7 +124,7 @@ export default function App() {
             ]}
           />
         </Box>
-        <Box display="flex" alignItems="center" p={1}>
+        <Box display="flex" p={1}>
           <TextField
             id="outlined-disabled"
             label="Upcoming Meeting"
@@ -133,7 +133,9 @@ export default function App() {
             value={upcomingSchedule?.content || 'No meeting today 👋'}
             helperText={prettyUpcomingStartDate(upcomingSchedule?.startDate)}
           />
-          {drawGoToMeetingIcon(upcomingSchedule)}
+          <FormControl>
+            {drawGoToMeetingIcon(upcomingSchedule)}
+          </FormControl>
         </Box>
         <Box display="flex" alignItems="center" mt={-1}>
           <IconButton
