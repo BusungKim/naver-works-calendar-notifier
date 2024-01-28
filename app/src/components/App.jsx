@@ -91,13 +91,27 @@ export default function App() {
     );
   }
 
+  function showVersionText() {
+    const version = process.env.BUILD_VERSION;
+    if (!version) {
+      return undefined;
+    }
+    return (
+      <div style={{ textAlign: 'right', paddingRight: '8px' }}>
+        <a
+          target="_blank"
+          href={`https://github.com/BusungKim/naver-works-calendar-notifier/releases/tag/v${version}`}
+          rel="noreferrer"
+        >
+          {`v${version}`}
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
-      {process.env.BUILD_VERSION && (
-        <div style={{ textAlign: 'right', paddingRight: '8px' }}>
-          {`v${process.env.BUILD_VERSION}`}
-        </div>
-      )}
+      {showVersionText()}
       {process.env.LOCAL_BUILD && <Debug />}
       <Box style={{
         margin: 'auto',
