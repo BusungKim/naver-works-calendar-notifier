@@ -81,10 +81,6 @@ export default function App() {
     );
   }
 
-  function needRefresh() {
-    return Date.now() - lastSyncedAt > 5 * 60 * 1000;
-  }
-
   return (
     <div className="container">
       {process.env.BUILD_VERSION && (
@@ -151,8 +147,8 @@ export default function App() {
         <Box display="flex" alignItems="center" mt={-1}>
           <IconButton
             size="large"
-            disabled={!needRefresh()}
-            color={needRefresh() ? 'error' : 'success'}
+            disabled={!needRefresh(lastSyncedAt)}
+            color={needRefresh(lastSyncedAt) ? 'error' : 'success'}
             onClick={() => handleClickRefresh()}
           >
             <Refresh />
@@ -185,8 +181,12 @@ function prettyUpcomingStartDate(startDate) {
   return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
 }
 
+function needRefresh(lastSyncedAt) {
+  return Date.now() - lastSyncedAt > 60 * 1000;
+}
+
 function prettyLastSyncedAt(lastSyncedAt) {
-  if (lastSyncedAt === 0) {
+  if (needRefresh(lastSyncedAt)) {
     return '👈 Not synced yet';
   }
 
