@@ -56,6 +56,16 @@ export default function App() {
     });
   }
 
+  async function handleClickRefresh() {
+    const r = await chrome?.storage?.local.get(['data.initialData']);
+    const calendarPageUrl = r ? r['data.initialData'].serverUrl : '';
+
+    if (calendarPageUrl === '') {
+      return;
+    }
+    chrome?.tabs?.create({ url: calendarPageUrl, active: true });
+  }
+
   function drawGoToMeetingIcon(schedule) {
     const videoMeetingUrl = getVideoMeetingUrl(schedule);
     return (
@@ -140,8 +150,9 @@ export default function App() {
         <Box display="flex" alignItems="center" mt={-1}>
           <IconButton
             size="large"
+            disabled={!needRefresh()}
             color={needRefresh() ? 'error' : 'success'}
-            onClick={() => {}}
+            onClick={() => handleClickRefresh()}
           >
             <Refresh />
           </IconButton>
