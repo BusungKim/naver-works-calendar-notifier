@@ -41,8 +41,9 @@ function getFilteredSchedules(schedules) {
 }
 
 function selectEffectiveAmongRepetition(schedules) {
-  if (schedules[0].repeatDateList?.length > 0) {
-    return schedules[0];
+  const parentSchedule = schedules.find((s) => s.repeatDateList?.length > 0);
+  if (parentSchedule) {
+    return parentSchedule;
   }
   return schedules[schedules.length - 1];
 }
