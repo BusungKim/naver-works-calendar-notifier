@@ -162,7 +162,7 @@ export default function App() {
             size="small"
             disabled
             value={upcomingSchedule?.content || 'No meeting today 👋'}
-            helperText={prettyUpcomingStartDate(upcomingSchedule?.startDate)}
+            helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
           />
           <FormControl>
             {drawGoToMeetingIcon(upcomingSchedule)}
