@@ -42,7 +42,7 @@ export default function App() {
       setInfoText('👈 Need to sync schedules');
       return;
     }
-    setInfoText(`Synced at ${moment(lastSyncedAt).format('H:mm A')}`);
+    setInfoText(`Synced at ${moment(lastSyncedAt).format('LT')}`);
   }, [lastSyncedAt]);
 
   function handleChangeSound(nextSound) {
