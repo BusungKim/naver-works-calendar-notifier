@@ -1,30 +1,44 @@
 /* global chrome */
 
-chrome?.runtime.onMessage.addListener((request) => {
-  const groups = Object.groupBy(request.schedules, (schedule) => {
+import { getTodaySchedules } from './common';
+
+chrome?.runtime?.onMessage.addListener(async (request) => {
+  if (!request.schedules) {
+    return;
+  }
+  cacheSchedules(request.schedules);
+  getFilteredSchedulesWithSideEffect(request.schedules);
+});
+
+async function cacheSchedules(schedules) {
+  await chrome?.storage?.local.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
+}
+
+function getFilteredSchedulesWithSideEffect(schedules) {
+  const filteredSchedules = getFilteredSchedules(schedules);
+  setBadgeText(filteredSchedules);
+  setUpcomingSchedule(filteredSchedules);
+
+  return filteredSchedules;
+}
+
+function getFilteredSchedules(schedules) {
+  const groups = Object.groupBy(schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
     }
     return schedule.parentScheduleId;
   });
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const candidateSchedules = Object.values(groups)
+
+  return Object.values(groups)
     .flatMap(selectEffectiveAmongRepetition)
     .map(preProcess)
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
     .map(postProcess);
-
-  candidateSchedules.forEach((schedule) => {
-    console.log(schedule.content, schedule.fixedStartDate);
-  });
-
-  chrome?.storage?.local.set({ 'data.schedules': candidateSchedules }).then(() => {
-    console.log('onMessage - set data.schedules', candidateSchedules);
-    setBadgeText(candidateSchedules);
-  });
-});
+}
 
 function selectEffectiveAmongRepetition(schedules) {
   if (schedules[0].repeatDateList?.length > 0) {
@@ -61,7 +75,15 @@ function setBadgeText(schedules) {
   chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
-chrome?.alarms.onAlarm.addListener(handleAlarm);
+function setUpcomingSchedule(schedules) {
+  let upcomingSchedule = {};
+  if (schedules.length > 0) {
+    [upcomingSchedule] = schedules;
+  }
+  chrome?.storage?.local.set({ 'data.upcomingSchedule': upcomingSchedule });
+}
+
+chrome?.alarms?.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
@@ -72,17 +94,26 @@ export async function handleAlarm() {
     return;
   }
 
-  chrome?.storage.local.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
-    .then((result) => {
-      const schedules = result['data.schedules'] || [];
-      const options = {
-        sound: result['setting.sound'],
-        retention: result['setting.notiRetention'],
-        timeWindow: result['setting.notiTimeWindow'],
-      };
-      console.log('onAlarm: ', schedules, options);
-      sendNotification(schedules, options);
-    });
+  const result = await chrome?.storage.local.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+
+  let schedules;
+  try {
+    schedules = await getTodaySchedules({ sameOrigin: false });
+    cacheSchedules(schedules);
+  } catch (e) {
+    // fallback
+    console.warn('fallback getTodaySchedules', e);
+    schedules = result['data.schedules'] || [];
+  }
+  schedules = getFilteredSchedulesWithSideEffect(schedules);
+
+  const options = {
+    sound: result['setting.sound'],
+    retention: result['setting.notiRetention'],
+    timeWindow: result['setting.notiTimeWindow'],
+  };
+  console.log('onAlarm: ', schedules, options);
+  sendNotification(schedules, options);
 }
 
 async function getPausedUntilTs() {
@@ -135,7 +166,7 @@ export function notify(schedule, options) {
     priority: 2,
     requireInteraction: options.retention === 'forever',
     type: 'basic',
-    iconUrl: chrome?.runtime.getURL('asset/icons8-calendar-96.png'),
+    iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
   });
   chrome?.notifications.onClicked.addListener((notificationId) => {
     console.log('onClicked: ', notificationId);
@@ -192,21 +223,22 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome?.runtime.onInstalled.addListener(() => {
+chrome?.runtime?.onInstalled.addListener(() => {
   console.log('onInstalled');
   chrome?.storage?.local.set({
     'setting.sound': 'none',
     'setting.notiRetention': 'forever',
     'setting.notiTimeWindow': 1,
   });
-  chrome?.alarms.get('schedule-polling', (alarm) => {
+  chrome?.alarms?.get('schedule-polling', (alarm) => {
     console.log('alarm: ', alarm);
     if (!alarm) {
       console.log('no alarm is set so created one');
-      chrome?.alarms.create('schedule-polling', {
+      chrome?.alarms?.create('schedule-polling', {
         delayInMinutes: 0,
         periodInMinutes: 1,
       });
     }
   });
+  handleAlarm();
 });

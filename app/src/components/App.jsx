@@ -1,8 +1,8 @@
 /* global chrome */
 import {
-  Box, IconButton, TextField,
+  Box, FormControl, IconButton, TextField, Typography,
 } from '@mui/material';
-import { Videocam } from '@mui/icons-material';
+import { Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
@@ -10,20 +10,40 @@ import { getVideoMeetingUrl, openVideoMeeting } from '../background';
 import moment from 'moment';
 
 export default function App() {
-  const [sound, setSound] = useState('');
-  const [notiRetention, setNotiRetention] = useState('');
-  const [notiTimeWindow, setNotiTimeWindow] = useState('');
+  const [sound, setSound] = useState('none');
+  const [notiRetention, setNotiRetention] = useState('forever');
+  const [notiTimeWindow, setNotiTimeWindow] = useState('0');
   const [upcomingSchedule, setUpcomingSchedule] = useState({});
+  const [lastSyncedAt, setLastSyncedAt] = useState(0);
+  const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
-    chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.schedules'])
-      .then((result) => {
-        setSound(result['setting.sound']);
-        setNotiRetention(result['setting.notiRetention']);
-        setNotiTimeWindow(result['setting.notiTimeWindow']);
-        setUpcomingSchedule(getUpcomingSchedule(result['data.schedules']));
-      });
+    async function init() {
+      const result = await chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
+      setSound(result['setting.sound']);
+      setNotiRetention(result['setting.notiRetention']);
+      setNotiTimeWindow(result['setting.notiTimeWindow']);
+      setUpcomingSchedule(result['data.upcomingSchedule']);
+    }
+    init();
   }, []);
+
+  useEffect(() => {
+    async function updateLastSyncedAt() {
+      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']) || {};
+      setLastSyncedAt(r['data.lastSyncedAt'] || 0);
+    }
+    updateLastSyncedAt();
+    setInterval(updateLastSyncedAt, 1_000);
+  }, []);
+
+  useEffect(() => {
+    if (needRefresh(lastSyncedAt)) {
+      setInfoText('👈 Need to sync schedules');
+      return;
+    }
+    setInfoText(`Synced at ${moment(lastSyncedAt).format('LT')}`);
+  }, [lastSyncedAt]);
 
   function handleChangeSound(nextSound) {
     console.log('handleChangeSound: ', nextSound);
@@ -46,11 +66,15 @@ export default function App() {
     });
   }
 
-  function getUpcomingSchedule(schedules = []) {
-    if (schedules.length === 0) {
-      return {};
+  async function handleClickRefresh() {
+    const r = await chrome?.storage?.local.get(['data.initialData']) || {};
+    const initialData = r['data.initialData'] || {};
+
+    if (!initialData.serverUrl) {
+      setInfoText('Please open your calendar manually 📅');
+      return;
     }
-    return schedules[0];
+    chrome?.tabs?.create({ url: initialData.serverUrl, active: true });
   }
 
   function drawGoToMeetingIcon(schedule) {
@@ -67,13 +91,27 @@ export default function App() {
     );
   }
 
+  function showVersionText() {
+    const version = process.env.BUILD_VERSION;
+    if (!version) {
+      return undefined;
+    }
+    return (
+      <div style={{ textAlign: 'right', paddingRight: '8px' }}>
+        <a
+          target="_blank"
+          href={`https://github.com/BusungKim/naver-works-calendar-notifier/releases/tag/v${version}`}
+          rel="noreferrer"
+        >
+          {`v${version}`}
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
-      {process.env.BUILD_VERSION && (
-        <div style={{ textAlign: 'right', paddingRight: '8px' }}>
-          {`v${process.env.BUILD_VERSION}`}
-        </div>
-      )}
+      {showVersionText()}
       {process.env.LOCAL_BUILD && <Debug />}
       <Box style={{
         margin: 'auto',
@@ -117,7 +155,7 @@ export default function App() {
             ]}
           />
         </Box>
-        <Box display="flex" alignItems="center" p={1}>
+        <Box display="flex" p={1}>
           <TextField
             id="outlined-disabled"
             label="Upcoming Meeting"
@@ -126,7 +164,25 @@ export default function App() {
             value={upcomingSchedule?.content || 'No meeting today 👋'}
             helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
           />
-          {drawGoToMeetingIcon(upcomingSchedule)}
+          <FormControl>
+            {drawGoToMeetingIcon(upcomingSchedule)}
+          </FormControl>
+        </Box>
+        <Box display="flex" alignItems="center" mt={-1}>
+          <IconButton
+            size="large"
+            disabled={!needRefresh(lastSyncedAt)}
+            color={needRefresh(lastSyncedAt) ? 'error' : 'success'}
+            onClick={() => handleClickRefresh()}
+          >
+            <Refresh />
+          </IconButton>
+          <Typography
+            variant="caption"
+            color="gray"
+          >
+            {infoText}
+          </Typography>
         </Box>
       </Box>
     </div>
@@ -144,7 +200,11 @@ function prettyUpcomingStartDate(startDate) {
   }
 
   const hour = Math.floor(seconds / 3600);
-  const minute = Math.ceil((seconds % 3600) / 60);
+  const minute = Math.floor((seconds % 3600) / 60);
 
   return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
+}
+
+function needRefresh(lastSyncedAt) {
+  return Date.now() - lastSyncedAt > 10 * 60 * 1000;
 }
