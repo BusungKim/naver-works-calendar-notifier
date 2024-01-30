@@ -1,7 +1,6 @@
-/* eslint-disable max-len */
 /* global chrome */
 
-chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome?.runtime.onMessage.addListener((request) => {
   const groups = Object.groupBy(request.schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
@@ -9,21 +8,52 @@ chrome?.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return schedule.parentScheduleId;
   });
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const uniqueSchedules = Object.values(groups)
-    .flatMap((schedules) => schedules[schedules.length - 1])
-    .filter((schedule) => nowTsSec - Math.floor(Date.parse(getStartDate(schedule)) / 1000) < 10 * 60)
-    .sort((a, b) => Date.parse(getStartDate(a)) - Date.parse(getStartDate(b)))
-    .map((schedule) => {
-      const newSchedule = schedule;
-      newSchedule.content = newSchedule.content.replace('&lt;', '<').replace('&gt;', '>');
-      return newSchedule;
-    });
+  const candidateSchedules = Object.values(groups)
+    .flatMap(selectEffectiveAmongRepetition)
+    .map(preProcess)
+    .filter((schedule) => !isOutdated(nowTsSec, schedule))
+    .filter((schedule) => !isRejected(schedule))
+    .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
+    .map(postProcess);
 
-  chrome?.storage?.local.set({ 'data.schedules': uniqueSchedules }).then(() => {
-    console.log('onMessage - set data.schedules', uniqueSchedules);
-    setBadgeText(uniqueSchedules);
+  candidateSchedules.forEach((schedule) => {
+    console.log(schedule.content, schedule.fixedStartDate);
+  });
+
+  chrome?.storage?.local.set({ 'data.schedules': candidateSchedules }).then(() => {
+    console.log('onMessage - set data.schedules', candidateSchedules);
+    setBadgeText(candidateSchedules);
   });
 });
+
+function selectEffectiveAmongRepetition(schedules) {
+  if (schedules[0].repeatDateList?.length > 0) {
+    return schedules[0];
+  }
+  return schedules[schedules.length - 1];
+}
+
+function preProcess(schedule) {
+  return {
+    fixedStartDate: schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate,
+    ...schedule,
+  };
+}
+
+function isOutdated(nowTsSec, schedule) {
+  return nowTsSec - Math.floor(Date.parse(schedule.fixedStartDate) / 1000) >= 10 * 60;
+}
+
+function isRejected(schedule) {
+  return schedule.appointment?.responseState === 'reject';
+}
+
+function postProcess(schedule) {
+  const ret = { ...schedule };
+  ret.content = ret.content.replace('&lt;', '<').replace('&gt;', '>');
+
+  return ret;
+}
 
 function setBadgeText(schedules) {
   chrome?.action.setBadgeText({ text: schedules.length.toString() });
@@ -67,32 +97,26 @@ function sendNotification(schedules, options) {
   const timeWindowMin = parseInt(options.timeWindow, 10);
 
   const nowTsSec = Math.floor(Date.now() / 1000);
-  const alarmNeededSchedules = schedules
-    .filter((s) => {
-      const startDate = getStartDate(s);
-      const tsDiff = Math.floor(Date.parse(startDate) / 1000) - nowTsSec;
+  const alarmNeededSchedules = schedules.filter((s) => {
+    const tsDiff = Math.floor(Date.parse(s.fixedStartDate) / 1000) - nowTsSec;
 
-      if (timeWindowMin === 0) {
-        return tsDiff <= 0 && tsDiff > -60;
-      }
-
-      return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
-    });
+    if (timeWindowMin === 0) {
+      return tsDiff <= 0 && tsDiff > -60;
+    }
+    return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
+  });
 
   alarmNeededSchedules.forEach((schedule) => notify(schedule, options));
 }
 
-function getStartDate(schedule) {
-  return schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate;
-}
-
 const soundAssetMap = {
   none: undefined,
-  cp77: 'asset/offscreen/sound/cp77.mp3',
-  ping: 'asset/offscreen/sound/ping.wav',
+  cp77: 'asset/sound/cp77.mp3',
+  ping: 'asset/sound/ping.mp3',
+  pikachu: 'asset/sound/pikachu.m4a',
 };
 
-function notify(schedule, options) {
+export function notify(schedule, options) {
   console.log('notify - ', options);
 
   const soundAssetPath = soundAssetMap[options.sound];

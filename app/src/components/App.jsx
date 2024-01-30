@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
 import { getVideoMeetingUrl, openVideoMeeting } from '../background';
+import moment from 'moment';
 
 export default function App() {
   const [sound, setSound] = useState('');
@@ -69,7 +70,7 @@ export default function App() {
   return (
     <div className="container">
       {process.env.BUILD_VERSION && (
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', paddingRight: '8px' }}>
           {`v${process.env.BUILD_VERSION}`}
         </div>
       )}
@@ -85,9 +86,10 @@ export default function App() {
             value={sound}
             onChange={(e) => handleChangeSound(e)}
             items={[
-              { value: 'none', label: 'None' },
+              { value: 'none', label: 'Off' },
               { value: 'cp77', label: 'Cyberpunk 2077' },
               { value: 'ping', label: 'Ping' },
+              { value: 'pikachu', label: 'Pikachu' },
             ]}
           />
         </Box>
@@ -121,12 +123,28 @@ export default function App() {
             label="Upcoming Meeting"
             size="small"
             disabled
-            value={upcomingSchedule?.content || 'No more meeting 😀'}
-            helperText={upcomingSchedule?.startDate}
+            value={upcomingSchedule?.content || 'No meeting today 👋'}
+            helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
           />
           {drawGoToMeetingIcon(upcomingSchedule)}
         </Box>
       </Box>
     </div>
   );
+}
+
+function prettyUpcomingStartDate(startDate) {
+  if (!startDate) {
+    return '';
+  }
+
+  const seconds = Math.floor((moment(startDate) - Date.now()) / 1000);
+  if (seconds <= 0) {
+    return 'Already started ⏰';
+  }
+
+  const hour = Math.floor(seconds / 3600);
+  const minute = Math.ceil((seconds % 3600) / 60);
+
+  return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
 }

@@ -7,6 +7,9 @@ package: build
 build:
 	cd app && npm run build
 
+debug:
+	cd app && npm run build-local
+
 unzip:
 	rm -rf temp
 	mkdir temp
