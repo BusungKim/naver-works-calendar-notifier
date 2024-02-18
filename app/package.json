@@ -22,7 +22,7 @@
     "dev": "parcel",
     "build-local": "npm run clean && cross-env LOCAL_BUILD=true parcel build --no-content-hash --no-optimize",
     "build": "./build.sh",
-    "test": "jest"
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
   },
   "license": "ISC",
   "dependencies": {
@@ -45,5 +45,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "jest": "^29.7.0",
     "process": "^0.11.10"
-  }
+  },
+  "type": "module"
 }

@@ -8,6 +8,12 @@
         "airbnb"
     ],
     "overrides": [
+        {
+            "files": ["tests/**/*"],
+            "env": {
+                "jest": true
+            }
+        }
     ],
     "parserOptions": {
         "ecmaVersion": "latest",
