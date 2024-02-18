@@ -10,7 +10,7 @@ export function getFilteredSchedules(schedules, nowTsSec) {
   console.info('today\'s schedule groups: ', groups);
 
   return Object.values(groups)
-    .flatMap((scheduleList) => selectEffectiveAmongRepetition(scheduleList, nowTsSec))
+    .flatMap((scheduleList) => selectEffectiveSchedule(scheduleList, nowTsSec))
     .map(preProcess)
     .filter((schedule) => schedule)
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
@@ -19,7 +19,7 @@ export function getFilteredSchedules(schedules, nowTsSec) {
     .map(postProcess);
 }
 
-export function selectEffectiveAmongRepetition(schedules, nowTsSec) {
+export function selectEffectiveSchedule(schedules, nowTsSec) {
   if (schedules.length === 1) {
     return schedules[0];
   }

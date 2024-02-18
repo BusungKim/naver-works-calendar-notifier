@@ -1,4 +1,4 @@
-import { selectEffectiveAmongRepetition } from '../src/schedules';
+import { selectEffectiveSchedule } from '../src/schedules';
 import moment from 'moment';
 
 test('Pick today\'s schedule if possible', () => {
@@ -29,7 +29,7 @@ test('Pick today\'s schedule if possible', () => {
     },
   ];
   const todayTsSec = moment('2024-02-16 01:23:45').unix();
-  expect(selectEffectiveAmongRepetition(schedules, todayTsSec))
+  expect(selectEffectiveSchedule(schedules, todayTsSec))
     .toEqual({
       scheduleId: 'schedule-id-2',
       parentScheduleId: 'schedule-id',
