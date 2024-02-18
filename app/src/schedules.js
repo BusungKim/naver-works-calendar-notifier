@@ -20,6 +20,10 @@ export function getFilteredSchedules(schedules, nowTsSec) {
 }
 
 export function selectEffectiveAmongRepetition(schedules, nowTsSec) {
+  if (schedules.length === 1) {
+    return schedules[0];
+  }
+
   const parentSchedule = schedules.find((s) => s.repeatDateList?.length > 0);
   if (parentSchedule) {
     return parentSchedule;
@@ -28,7 +32,8 @@ export function selectEffectiveAmongRepetition(schedules, nowTsSec) {
   const todayStart = moment.unix(nowTsSec).startOf('day');
   const todayEnd = moment.unix(nowTsSec).endOf('day');
 
-  return schedules.find((s) => moment(s.startDate).isBetween(todayStart, todayEnd));
+  return schedules.filter((s) => s.parentScheduleId)
+    .find((s) => moment(s.startDate).isBetween(todayStart, todayEnd));
 }
 
 function preProcess(schedule) {
