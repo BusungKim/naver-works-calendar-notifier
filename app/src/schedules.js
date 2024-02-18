@@ -7,7 +7,7 @@ export function getFilteredSchedules(schedules, nowTsSec) {
     }
     return schedule.parentScheduleId;
   });
-  const nowTsSec = Math.floor(Date.now() / 1000);
+  console.info('today\'s schedule groups: ', groups);
 
   return Object.values(groups)
     .flatMap((scheduleList) => selectEffectiveAmongRepetition(scheduleList, nowTsSec))
