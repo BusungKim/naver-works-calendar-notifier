@@ -1,6 +1,8 @@
 /* global chrome */
 
 import { getTodaySchedules } from './common';
+import { getFilteredSchedules } from './schedules';
+import moment from 'moment';
 
 chrome?.runtime?.onMessage.addListener(async (request) => {
   if (!request.schedules) {
@@ -15,59 +17,12 @@ async function cacheSchedules(schedules) {
 }
 
 function getFilteredSchedulesWithSideEffect(schedules) {
-  const filteredSchedules = getFilteredSchedules(schedules);
+  const nowTsSec = Math.floor(Date.now() / 1000);
+  const filteredSchedules = getFilteredSchedules(schedules, nowTsSec);
   setBadgeText(filteredSchedules);
   setUpcomingSchedule(filteredSchedules);
 
   return filteredSchedules;
-}
-
-function getFilteredSchedules(schedules) {
-  const groups = Object.groupBy(schedules, (schedule) => {
-    if (!schedule.parentScheduleId) {
-      return schedule.scheduleId;
-    }
-    return schedule.parentScheduleId;
-  });
-  const nowTsSec = Math.floor(Date.now() / 1000);
-
-  return Object.values(groups)
-    .flatMap(selectEffectiveAmongRepetition)
-    .map(preProcess)
-    .filter((schedule) => !isOutdated(nowTsSec, schedule))
-    .filter((schedule) => !isRejected(schedule))
-    .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
-    .map(postProcess);
-}
-
-function selectEffectiveAmongRepetition(schedules) {
-  const parentSchedule = schedules.find((s) => s.repeatDateList?.length > 0);
-  if (parentSchedule) {
-    return parentSchedule;
-  }
-  return schedules[schedules.length - 1];
-}
-
-function preProcess(schedule) {
-  return {
-    fixedStartDate: schedule.repeatDateList?.length > 0 ? schedule.repeatDateList[0].startDate : schedule.startDate,
-    ...schedule,
-  };
-}
-
-function isOutdated(nowTsSec, schedule) {
-  return nowTsSec - Math.floor(Date.parse(schedule.fixedStartDate) / 1000) >= 10 * 60;
-}
-
-function isRejected(schedule) {
-  return schedule.appointment?.responseState === 'reject';
-}
-
-function postProcess(schedule) {
-  const ret = { ...schedule };
-  ret.content = ret.content.replace('&lt;', '<').replace('&gt;', '>');
-
-  return ret;
 }
 
 function setBadgeText(schedules) {
@@ -88,10 +43,8 @@ chrome?.alarms?.onAlarm.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
-  console.log('pausedUntil: ', pausedUntilTs);
-
   if (pausedUntilTs && Date.now() <= pausedUntilTs) {
-    console.log('pausedUntil is set so skip');
+    console.log('paused until', moment(pausedUntilTs).format('YYYY-MM-DD HH:mm:ss'));
     return;
   }
 
@@ -113,7 +66,6 @@ export async function handleAlarm() {
     retention: result['setting.notiRetention'],
     timeWindow: result['setting.notiTimeWindow'],
   };
-  console.log('onAlarm: ', schedules, options);
   sendNotification(schedules, options);
 }
 
@@ -149,8 +101,6 @@ const soundAssetMap = {
 };
 
 export function notify(schedule, options) {
-  console.log('notify - ', options);
-
   const soundAssetPath = soundAssetMap[options.sound];
   if (soundAssetPath) {
     chrome?.offscreen?.createDocument({
@@ -170,7 +120,6 @@ export function notify(schedule, options) {
     iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
   });
   chrome?.notifications.onClicked.addListener((notificationId) => {
-    console.log('onClicked: ', notificationId);
     chrome?.notifications.clear(notificationId);
     chrome?.offscreen?.closeDocument();
     openVideoMeeting(videoMeetingUrl);
@@ -185,12 +134,10 @@ export function openVideoMeeting(videoMeetingUrl) {
 }
 
 chrome?.notifications?.onClosed.addListener((notificationId) => {
-  console.log('onClosed: ', notificationId);
   chrome?.offscreen?.closeDocument();
 });
 
 export function getVideoMeetingUrl(schedule) {
-  console.log('getMeetingUrl: ', schedule);
   if (schedule.videoMeeting) {
     return schedule.videoMeeting.link;
   }
@@ -225,16 +172,13 @@ function findMeetingUrlFromText(text = '') {
 }
 
 chrome?.runtime?.onInstalled.addListener(() => {
-  console.log('onInstalled');
   chrome?.storage?.local.set({
     'setting.sound': 'none',
     'setting.notiRetention': 'forever',
     'setting.notiTimeWindow': 1,
   });
   chrome?.alarms?.get('schedule-polling', (alarm) => {
-    console.log('alarm: ', alarm);
     if (!alarm) {
-      console.log('no alarm is set so created one');
       chrome?.alarms?.create('schedule-polling', {
         delayInMinutes: 0,
         periodInMinutes: 1,

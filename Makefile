@@ -4,7 +4,7 @@ ZIP_FILE := naver-works-calendar-notifier-$(VERSION).zip
 package: build
 	zip $(ZIP_FILE) -r asset dist manifest.json
 
-build:
+build: test
 	cd app && npm run build
 
 debug:
@@ -14,3 +14,6 @@ unzip:
 	rm -rf temp
 	mkdir temp
 	unzip $(ZIP_FILE) -d temp
+
+test:
+	cd app && npm run test

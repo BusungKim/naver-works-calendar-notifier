@@ -25,5 +25,5 @@ setInterval(sendMessageToBackground, dataPollingIntervalSec * 1_000);
 async function sendMessageToBackground() {
   const nextTodaySchedules = await getTodaySchedules({ sameOrigin: true });
   await chrome?.runtime?.sendMessage({ schedules: nextTodaySchedules });
-  console.log('done sending message');
+  console.info('done sending message', nextTodaySchedules);
 }
