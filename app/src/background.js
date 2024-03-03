@@ -118,11 +118,8 @@ export function notify(schedule, options) {
     requireInteraction: options.retention === 'forever',
     type: 'basic',
     iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
-  });
-  chrome?.notifications.onClicked.addListener((notificationId) => {
-    chrome?.notifications.clear(notificationId);
-    chrome?.offscreen?.closeDocument();
-    openVideoMeeting(videoMeetingUrl);
+  }, () => {
+    chrome?.storage?.local.set({ 'data.lastVideoMeetingUrl': videoMeetingUrl });
   });
 }
 
@@ -132,6 +129,17 @@ export function openVideoMeeting(videoMeetingUrl) {
   }
   chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
 }
+
+chrome?.notifications.onClicked.addListener(async (notificationId) => {
+  const storageResult = await chrome?.storage?.local.get('data.lastVideoMeetingUrl');
+  const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
+  if (lastVideoMeetingUrl) {
+    openVideoMeeting(lastVideoMeetingUrl);
+  }
+
+  chrome?.notifications.clear(notificationId);
+  chrome?.offscreen?.closeDocument();
+});
 
 chrome?.notifications?.onClosed.addListener((notificationId) => {
   chrome?.offscreen?.closeDocument();
