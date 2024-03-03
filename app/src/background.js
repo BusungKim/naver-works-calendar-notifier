@@ -171,12 +171,16 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome?.runtime?.onInstalled.addListener(() => {
-  chrome?.storage?.local.set({
-    'setting.sound': 'none',
-    'setting.notiRetention': 'forever',
-    'setting.notiTimeWindow': 1,
-  });
+chrome?.runtime?.onInstalled.addListener(async () => {
+  const data = await chrome?.storage?.local.get('setting.sound');
+  if (!data['setting.sound']) {
+    chrome?.storage?.local.set({
+      'setting.sound': 'none',
+      'setting.notiRetention': 'forever',
+      'setting.notiTimeWindow': 1,
+    });
+  }
+
   chrome?.alarms?.get('schedule-polling', (alarm) => {
     if (!alarm) {
       chrome?.alarms?.create('schedule-polling', {
