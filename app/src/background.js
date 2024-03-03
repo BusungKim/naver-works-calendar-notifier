@@ -19,6 +19,8 @@ async function cacheSchedules(schedules) {
 function getFilteredSchedulesWithSideEffect(schedules) {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const filteredSchedules = getFilteredSchedules(schedules, nowTsSec);
+  console.info('filteredSchedules: ', filteredSchedules);
+
   setBadgeText(filteredSchedules);
   setUpcomingSchedule(filteredSchedules);
 
