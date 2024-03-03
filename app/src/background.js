@@ -127,7 +127,6 @@ export function openVideoMeeting(videoMeetingUrl) {
   if (videoMeetingUrl) {
     chrome?.tabs.create({ url: videoMeetingUrl, active: true });
   }
-  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.notifications.onClicked.addListener(async (notificationId) => {
@@ -138,12 +137,17 @@ chrome?.notifications.onClicked.addListener(async (notificationId) => {
   }
 
   chrome?.notifications.clear(notificationId);
-  chrome?.offscreen?.closeDocument();
+  postCloseNotification();
 });
 
-chrome?.notifications?.onClosed.addListener((notificationId) => {
-  chrome?.offscreen?.closeDocument();
+chrome?.notifications?.onClosed.addListener(() => {
+  postCloseNotification();
 });
+
+function postCloseNotification() {
+  chrome?.offscreen?.closeDocument();
+  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
+}
 
 export function getVideoMeetingUrl(schedule) {
   if (schedule.videoMeeting) {
