@@ -123,32 +123,6 @@ export function notify(schedule, options) {
   });
 }
 
-export function openVideoMeeting(videoMeetingUrl) {
-  if (videoMeetingUrl) {
-    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
-  }
-}
-
-chrome?.notifications.onClicked.addListener(async (notificationId) => {
-  const storageResult = await chrome?.storage?.local.get('data.lastVideoMeetingUrl');
-  const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
-  if (lastVideoMeetingUrl) {
-    openVideoMeeting(lastVideoMeetingUrl);
-  }
-
-  chrome?.notifications.clear(notificationId);
-  postCloseNotification();
-});
-
-chrome?.notifications?.onClosed.addListener(() => {
-  postCloseNotification();
-});
-
-function postCloseNotification() {
-  chrome?.offscreen?.closeDocument();
-  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
-}
-
 export function getVideoMeetingUrl(schedule) {
   if (schedule.videoMeeting) {
     return schedule.videoMeeting.link;
@@ -181,6 +155,32 @@ function findMeetingUrlFromText(text = '') {
   }
 
   return undefined;
+}
+
+chrome?.notifications.onClicked.addListener(async (notificationId) => {
+  const storageResult = await chrome?.storage?.local.get('data.lastVideoMeetingUrl');
+  const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
+  if (lastVideoMeetingUrl) {
+    openVideoMeeting(lastVideoMeetingUrl);
+  }
+
+  chrome?.notifications.clear(notificationId);
+  postCloseNotification();
+});
+
+chrome?.notifications?.onClosed.addListener(() => {
+  postCloseNotification();
+});
+
+export function openVideoMeeting(videoMeetingUrl) {
+  if (videoMeetingUrl) {
+    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
+  }
+}
+
+function postCloseNotification() {
+  chrome?.offscreen?.closeDocument();
+  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.runtime?.onInstalled.addListener(async () => {
