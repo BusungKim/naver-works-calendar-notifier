@@ -181,13 +181,12 @@ chrome?.runtime?.onInstalled.addListener(async () => {
     });
   }
 
-  chrome?.alarms?.get('schedule-polling', (alarm) => {
-    if (!alarm) {
-      chrome?.alarms?.create('schedule-polling', {
-        delayInMinutes: 0,
-        periodInMinutes: 1,
-      });
-    }
-  });
+  const alarmForPolling = await chrome?.alarms?.get('schedule-polling');
+  if (!alarmForPolling) {
+    chrome?.alarms?.create('schedule-polling', {
+      delayInMinutes: 0,
+      periodInMinutes: 1,
+    });
+  }
   handleAlarm();
 });
