@@ -72,11 +72,11 @@ export async function handleAlarm() {
 }
 
 async function getPausedUntilTs() {
-  const pausedUntilResult = await chrome?.storage?.local.get('setting.pausedUntil');
+  const pausedUntilResult = await chrome?.storage?.local.get('data.pausedUntilTs');
   if (!pausedUntilResult) {
     return undefined;
   }
-  return pausedUntilResult['setting.pausedUntil'];
+  return pausedUntilResult['data.pausedUntilTs'];
 }
 
 function sendNotification(schedules, options) {
@@ -182,7 +182,7 @@ export function openVideoMeeting(videoMeetingUrl) {
 
 function postCloseNotification() {
   chrome?.offscreen?.closeDocument();
-  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
+  chrome?.storage?.local.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.runtime?.onInstalled.addListener(async () => {

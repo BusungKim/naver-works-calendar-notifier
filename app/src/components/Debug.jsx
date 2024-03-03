@@ -33,8 +33,8 @@ async function handleRequest() {
 }
 
 function handleClickNotification() {
-  chrome?.storage?.local.get('setting.pausedUntil').then((result) => {
-    console.log('pausedUntil: ', result['setting.pausedUntil']);
+  chrome?.storage?.local.get('data.pausedUntilTs').then((result) => {
+    console.log('pausedUntil: ', result['data.pausedUntilTs']);
   });
 
   chrome?.storage.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
