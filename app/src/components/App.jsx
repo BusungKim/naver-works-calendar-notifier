@@ -179,7 +179,7 @@ export default function App() {
           </IconButton>
           <Typography
             variant="caption"
-            color="gray"
+            color="darkgray"
           >
             {infoText}
           </Typography>

@@ -53,7 +53,11 @@ function isRejected(schedule) {
 
 function postProcess(schedule) {
   const ret = { ...schedule };
-  ret.content = ret.content.replace('&lt;', '<').replace('&gt;', '>');
+  ret.content = ret.content
+    .replace('&lt;', '<')
+    .replace('&gt;', '>')
+    .replace('&amp;', '&')
+    .replace('&ndash;', '-');
 
   return ret;
 }

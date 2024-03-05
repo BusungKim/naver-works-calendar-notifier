@@ -19,6 +19,8 @@ async function cacheSchedules(schedules) {
 function getFilteredSchedulesWithSideEffect(schedules) {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const filteredSchedules = getFilteredSchedules(schedules, nowTsSec);
+  console.info('filteredSchedules: ', filteredSchedules);
+
   setBadgeText(filteredSchedules);
   setUpcomingSchedule(filteredSchedules);
 
@@ -70,11 +72,11 @@ export async function handleAlarm() {
 }
 
 async function getPausedUntilTs() {
-  const pausedUntilResult = await chrome?.storage?.local.get('setting.pausedUntil');
+  const pausedUntilResult = await chrome?.storage?.local.get('data.pausedUntilTs');
   if (!pausedUntilResult) {
     return undefined;
   }
-  return pausedUntilResult['setting.pausedUntil'];
+  return pausedUntilResult['data.pausedUntilTs'];
 }
 
 function sendNotification(schedules, options) {
@@ -118,24 +120,10 @@ export function notify(schedule, options) {
     requireInteraction: options.retention === 'forever',
     type: 'basic',
     iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
-  });
-  chrome?.notifications.onClicked.addListener((notificationId) => {
-    chrome?.notifications.clear(notificationId);
-    chrome?.offscreen?.closeDocument();
-    openVideoMeeting(videoMeetingUrl);
+  }, () => {
+    chrome?.storage?.local.set({ 'data.lastVideoMeetingUrl': videoMeetingUrl });
   });
 }
-
-export function openVideoMeeting(videoMeetingUrl) {
-  if (videoMeetingUrl) {
-    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
-  }
-  chrome?.storage?.local.set({ 'setting.pausedUntil': Date.now() + 1000 * 60 * 3 });
-}
-
-chrome?.notifications?.onClosed.addListener((notificationId) => {
-  chrome?.offscreen?.closeDocument();
-});
 
 export function getVideoMeetingUrl(schedule) {
   if (schedule.videoMeeting) {
@@ -171,19 +159,48 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome?.runtime?.onInstalled.addListener(() => {
-  chrome?.storage?.local.set({
-    'setting.sound': 'none',
-    'setting.notiRetention': 'forever',
-    'setting.notiTimeWindow': 1,
-  });
-  chrome?.alarms?.get('schedule-polling', (alarm) => {
-    if (!alarm) {
-      chrome?.alarms?.create('schedule-polling', {
-        delayInMinutes: 0,
-        periodInMinutes: 1,
-      });
-    }
-  });
+chrome?.notifications.onClicked.addListener(async (notificationId) => {
+  const storageResult = await chrome?.storage?.local.get('data.lastVideoMeetingUrl');
+  const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
+  if (lastVideoMeetingUrl) {
+    openVideoMeeting(lastVideoMeetingUrl);
+  }
+
+  chrome?.notifications.clear(notificationId);
+  postCloseNotification();
+});
+
+chrome?.notifications?.onClosed.addListener(() => {
+  postCloseNotification();
+});
+
+export function openVideoMeeting(videoMeetingUrl) {
+  if (videoMeetingUrl) {
+    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
+  }
+}
+
+function postCloseNotification() {
+  chrome?.offscreen?.closeDocument();
+  chrome?.storage?.local.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
+}
+
+chrome?.runtime?.onInstalled.addListener(async () => {
+  const data = await chrome?.storage?.local.get('setting.sound');
+  if (!data['setting.sound']) {
+    chrome?.storage?.local.set({
+      'setting.sound': 'none',
+      'setting.notiRetention': 'forever',
+      'setting.notiTimeWindow': 1,
+    });
+  }
+
+  const alarmForPolling = await chrome?.alarms?.get('schedule-polling');
+  if (!alarmForPolling) {
+    chrome?.alarms?.create('schedule-polling', {
+      delayInMinutes: 0,
+      periodInMinutes: 1,
+    });
+  }
   handleAlarm();
 });
