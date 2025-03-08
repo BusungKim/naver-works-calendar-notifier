@@ -11,8 +11,8 @@ export function getFilteredSchedules(schedules, nowTsSec) {
 
   return Object.values(groups)
     .flatMap((scheduleList) => selectEffectiveSchedule(scheduleList, nowTsSec))
-    .map(preProcess)
     .filter((schedule) => schedule)
+    .map(preProcess)
     .filter((schedule) => !isOutdated(nowTsSec, schedule))
     .filter((schedule) => !isRejected(schedule))
     .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
