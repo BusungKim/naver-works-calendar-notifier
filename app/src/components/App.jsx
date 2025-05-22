@@ -6,7 +6,7 @@ import { Description, Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
-import { getVideoMeetingUrl, getWikiUrl, openVideoMeeting } from '../background';
+import { getVideoMeetingUrl, getWikiUrl, openTab } from '../background';
 import moment from 'moment';
 
 export default function App() {
@@ -86,7 +86,7 @@ export default function App() {
         disabled={!videoMeetingUrl}
         size="small"
         color="primary"
-        onClick={() => openVideoMeeting(videoMeetingUrl)}
+        onClick={() => openTab(videoMeetingUrl)}
       >
         <Videocam />
       </IconButton>
@@ -100,7 +100,7 @@ export default function App() {
         disabled={!wikiUrl}
         size="small"
         color="primary"
-        onClick={() => openVideoMeeting(wikiUrl)}
+        onClick={() => openTab(wikiUrl)}
       >
         <Description />
       </IconButton>

@@ -173,7 +173,7 @@ chrome?.notifications?.onClicked?.addListener(async (notificationId) => {
   const storageResult = await chrome?.storage?.local?.get('data.lastVideoMeetingUrl');
   const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
   if (lastVideoMeetingUrl) {
-    openVideoMeeting(lastVideoMeetingUrl);
+    openTab(lastVideoMeetingUrl);
   }
 
   chrome?.notifications?.clear(notificationId);
@@ -184,9 +184,9 @@ chrome?.notifications?.onClosed?.addListener(() => {
   postCloseNotification();
 });
 
-export function openVideoMeeting(videoMeetingUrl) {
-  if (videoMeetingUrl) {
-    chrome?.tabs?.create({ url: videoMeetingUrl, active: true });
+export function openTab(url) {
+  if (url) {
+    chrome?.tabs?.create({ url, active: true });
   }
 }
 
