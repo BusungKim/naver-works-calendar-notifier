@@ -19,18 +19,20 @@ export default function App() {
 
   useEffect(() => {
     async function init() {
-      const result = await chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
-      setSound(result['setting.sound']);
-      setNotiRetention(result['setting.notiRetention']);
-      setNotiTimeWindow(result['setting.notiTimeWindow']);
-      setUpcomingSchedule(result['data.upcomingSchedule']);
+      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
+      if (result) {
+        setSound(result['setting.sound']);
+        setNotiRetention(result['setting.notiRetention']);
+        setNotiTimeWindow(result['setting.notiTimeWindow']);
+        setUpcomingSchedule(result['data.upcomingSchedule']);
+      }
     }
     init();
   }, []);
 
   useEffect(() => {
     async function updateLastSyncedAt() {
-      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']) || {};
+      const r = await chrome?.storage?.local?.get(['data.lastSyncedAt']) || {};
       setLastSyncedAt(r['data.lastSyncedAt'] || 0);
     }
     updateLastSyncedAt();
@@ -47,27 +49,27 @@ export default function App() {
 
   function handleChangeSound(nextSound) {
     console.log('handleChangeSound: ', nextSound);
-    chrome?.storage?.local.set({ 'setting.sound': nextSound }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.sound': nextSound }).then(() => {
       setSound(nextSound);
     });
   }
 
   function handleChangeNotiRetention(nextNotiRetention) {
     console.log('handleChangeNotiRetention: ', nextNotiRetention);
-    chrome?.storage?.local.set({ 'setting.notiRetention': nextNotiRetention }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.notiRetention': nextNotiRetention }).then(() => {
       setNotiRetention(nextNotiRetention);
     });
   }
 
   function handleChangeNotiTimeWindow(nextNotiTimeWindow) {
     console.log('handleChangeNotiTimeWindow: ', nextNotiTimeWindow);
-    chrome?.storage?.local.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
       setNotiTimeWindow(nextNotiTimeWindow);
     });
   }
 
   async function handleClickRefresh() {
-    const r = await chrome?.storage?.local.get(['data.initialData']) || {};
+    const r = await chrome?.storage?.local?.get(['data.initialData']) || {};
     const initialData = r['data.initialData'] || {};
 
     if (!initialData.serverUrl) {

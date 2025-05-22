@@ -33,11 +33,11 @@ async function handleRequest() {
 }
 
 function handleClickNotification() {
-  chrome?.storage?.local.get('data.pausedUntilTs').then((result) => {
+  chrome?.storage?.local?.get('data.pausedUntilTs').then((result) => {
     console.log('pausedUntil: ', result['data.pausedUntilTs']);
   });
 
-  chrome?.storage.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
+  chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow'])
     .then((result) => {
       notify({
         scheduleId: 'debug-schedule-id',

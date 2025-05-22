@@ -4,7 +4,7 @@ import { getTodaySchedules } from './common';
 import { getFilteredSchedules } from './schedules';
 import moment from 'moment';
 
-chrome?.runtime?.onMessage.addListener(async (request) => {
+chrome?.runtime?.onMessage?.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
@@ -13,7 +13,7 @@ chrome?.runtime?.onMessage.addListener(async (request) => {
 });
 
 async function cacheSchedules(schedules) {
-  await chrome?.storage?.local.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
+  await chrome?.storage?.local?.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
 }
 
 function getFilteredSchedulesWithSideEffect(schedules) {
@@ -28,9 +28,9 @@ function getFilteredSchedulesWithSideEffect(schedules) {
 }
 
 function setBadgeText(schedules) {
-  chrome?.action.setBadgeText({ text: schedules.length.toString() });
-  chrome?.action.setBadgeTextColor({ color: 'white' });
-  chrome?.action.setBadgeBackgroundColor({ color: '#28C665' });
+  chrome?.action?.setBadgeText({ text: schedules.length.toString() });
+  chrome?.action?.setBadgeTextColor({ color: 'white' });
+  chrome?.action?.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
 function setUpcomingSchedule(schedules) {
@@ -38,10 +38,10 @@ function setUpcomingSchedule(schedules) {
   if (schedules.length > 0) {
     [upcomingSchedule] = schedules;
   }
-  chrome?.storage?.local.set({ 'data.upcomingSchedule': upcomingSchedule });
+  chrome?.storage?.local?.set({ 'data.upcomingSchedule': upcomingSchedule });
 }
 
-chrome?.alarms?.onAlarm.addListener(handleAlarm);
+chrome?.alarms?.onAlarm?.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
@@ -50,7 +50,7 @@ export async function handleAlarm() {
     return;
   }
 
-  const result = await chrome?.storage.local.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+  const result = await chrome?.storage?.local?.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
 
   let schedules;
   try {
@@ -72,7 +72,7 @@ export async function handleAlarm() {
 }
 
 async function getPausedUntilTs() {
-  const pausedUntilResult = await chrome?.storage?.local.get('data.pausedUntilTs');
+  const pausedUntilResult = await chrome?.storage?.local?.get('data.pausedUntilTs');
   if (!pausedUntilResult) {
     return undefined;
   }
@@ -113,7 +113,7 @@ export function notify(schedule, options) {
   }
 
   const videoMeetingUrl = getVideoMeetingUrl(schedule);
-  chrome?.notifications.create(schedule.scheduleId, {
+  chrome?.notifications?.create(schedule.scheduleId, {
     title: schedule.content,
     message: videoMeetingUrl ? 'Click to join the meeting' : 'Time to attend the meeting',
     priority: 2,
@@ -121,7 +121,7 @@ export function notify(schedule, options) {
     type: 'basic',
     iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
   }, () => {
-    chrome?.storage?.local.set({ 'data.lastVideoMeetingUrl': videoMeetingUrl });
+    chrome?.storage?.local?.set({ 'data.lastVideoMeetingUrl': videoMeetingUrl });
   });
 }
 
@@ -159,36 +159,36 @@ function findMeetingUrlFromText(text = '') {
   return undefined;
 }
 
-chrome?.notifications.onClicked.addListener(async (notificationId) => {
-  const storageResult = await chrome?.storage?.local.get('data.lastVideoMeetingUrl');
+chrome?.notifications?.onClicked?.addListener(async (notificationId) => {
+  const storageResult = await chrome?.storage?.local?.get('data.lastVideoMeetingUrl');
   const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
   if (lastVideoMeetingUrl) {
     openVideoMeeting(lastVideoMeetingUrl);
   }
 
-  chrome?.notifications.clear(notificationId);
+  chrome?.notifications?.clear(notificationId);
   postCloseNotification();
 });
 
-chrome?.notifications?.onClosed.addListener(() => {
+chrome?.notifications?.onClosed?.addListener(() => {
   postCloseNotification();
 });
 
 export function openVideoMeeting(videoMeetingUrl) {
   if (videoMeetingUrl) {
-    chrome?.tabs.create({ url: videoMeetingUrl, active: true });
+    chrome?.tabs?.create({ url: videoMeetingUrl, active: true });
   }
 }
 
 function postCloseNotification() {
   chrome?.offscreen?.closeDocument();
-  chrome?.storage?.local.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
+  chrome?.storage?.local?.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
 }
 
 chrome?.runtime?.onInstalled.addListener(async () => {
-  const data = await chrome?.storage?.local.get('setting.sound');
+  const data = await chrome?.storage?.local?.get('setting.sound');
   if (!data['setting.sound']) {
-    chrome?.storage?.local.set({
+    chrome?.storage?.local?.set({
       'setting.sound': 'none',
       'setting.notiRetention': 'forever',
       'setting.notiTimeWindow': 1,

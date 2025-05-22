@@ -2,7 +2,7 @@
 import { getTodaySchedules } from './common';
 
 const initialData = parseInitialDataText();
-chrome?.storage?.local.set({ 'data.initialData': initialData })
+chrome?.storage?.local?.set({ 'data.initialData': initialData })
   .then(sendMessageToBackground);
 
 function parseInitialDataText() {
