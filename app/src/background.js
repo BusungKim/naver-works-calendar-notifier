@@ -142,6 +142,11 @@ export function getVideoMeetingUrl(schedule) {
   return undefined;
 }
 
+export function getWikiUrl(schedule) {
+  // TODO
+  return undefined;
+}
+
 const zoomRegex = /(https:\/\/.*\.zoom\.us\/[^\s]+)/g;
 const worksRegex = /https:\/\/works\.do\/.*/g;
 

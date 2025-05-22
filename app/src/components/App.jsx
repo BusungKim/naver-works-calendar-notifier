@@ -2,11 +2,11 @@
 import {
   Box, FormControl, IconButton, TextField, Typography,
 } from '@mui/material';
-import { Refresh, Videocam } from '@mui/icons-material';
+import { Description, Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
-import { getVideoMeetingUrl, openVideoMeeting } from '../background';
+import { getVideoMeetingUrl, getWikiUrl, openVideoMeeting } from '../background';
 import moment from 'moment';
 
 export default function App() {
@@ -93,6 +93,20 @@ export default function App() {
     );
   }
 
+  function drawWikiIcon(schedule) {
+    const wikiUrl = getWikiUrl(schedule);
+    return (
+      <IconButton
+        disabled={!wikiUrl}
+        size="large"
+        color="primary"
+        onClick={() => {}}
+      >
+        <Description />
+      </IconButton>
+    );
+  }
+
   function showVersionText() {
     const version = process.env.BUILD_VERSION;
     if (!version) {
@@ -170,6 +184,7 @@ export default function App() {
         </Box>
         <Box display="flex" alignItems="center" mt={-1}>
           {drawGoToMeetingIcon(upcomingSchedule)}
+          {drawWikiIcon(upcomingSchedule)}
           <IconButton
             size="large"
             disabled={!needRefresh(lastSyncedAt)}
