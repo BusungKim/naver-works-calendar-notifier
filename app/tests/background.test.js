@@ -1,5 +1,6 @@
 import { selectEffectiveSchedule } from '../src/schedules';
 import moment from 'moment';
+import { getWikiUrl } from '../src/background';
 
 test('Pick today\'s schedule if possible', () => {
   const schedules = [
@@ -36,4 +37,22 @@ test('Pick today\'s schedule if possible', () => {
       startDate: '2024-02-16 09:00:00',
       endDate: '2024-02-16 10:00:00',
     });
+});
+
+test('Extract wiki url from memo', () => {
+  const testCases = [
+    {
+      schedule: {
+        memo: 'wiki: https://wiki.blahblah.com/pageId=123123123',
+      },
+      expected: 'https://wiki.blahblah.com/pageId=123123123',
+    },
+    {
+      schedule: {
+        memo: '- zoom: https://zoom.foo.bar\n\n- wiki: https://wiki.blahblah.com/pageId=999999\n\n',
+      },
+      expected: 'https://wiki.blahblah.com/pageId=999999',
+    },
+  ];
+  testCases.forEach((tc) => expect(getWikiUrl(tc.schedule)).toEqual(tc.expected));
 });

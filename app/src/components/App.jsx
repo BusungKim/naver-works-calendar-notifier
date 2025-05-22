@@ -100,7 +100,7 @@ export default function App() {
         disabled={!wikiUrl}
         size="small"
         color="primary"
-        onClick={() => {}}
+        onClick={() => openVideoMeeting(wikiUrl)}
       >
         <Description />
       </IconButton>

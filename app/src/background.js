@@ -143,12 +143,17 @@ export function getVideoMeetingUrl(schedule) {
 }
 
 export function getWikiUrl(schedule) {
-  // TODO
+  const memo = schedule.memo || '';
+  const wikiUrlMatches = memo.match(wikiRegex);
+  if (wikiUrlMatches) {
+    return wikiUrlMatches[0];
+  }
   return undefined;
 }
 
 const zoomRegex = /(https:\/\/.*\.zoom\.us\/[^\s]+)/g;
 const worksRegex = /https:\/\/works\.do\/.*/g;
+const wikiRegex = /https:\/\/\S*wiki\S*/g;
 
 function findMeetingUrlFromText(text = '') {
   const zoomMatches = text.match(zoomRegex);
