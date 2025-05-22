@@ -157,20 +157,19 @@ export default function App() {
             ]}
           />
         </Box>
-        <Box display="flex" p={1}>
+        <Box display="flex" alignItems="center" p={1}>
           <TextField
             id="outlined-disabled"
             label="Upcoming Meeting"
             size="small"
             disabled
+            fullWidth
             value={upcomingSchedule?.content || 'No meeting today 👋'}
             helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
           />
-          <FormControl>
-            {drawGoToMeetingIcon(upcomingSchedule)}
-          </FormControl>
         </Box>
         <Box display="flex" alignItems="center" mt={-1}>
+          {drawGoToMeetingIcon(upcomingSchedule)}
           <IconButton
             size="large"
             disabled={!needRefresh(lastSyncedAt)}
