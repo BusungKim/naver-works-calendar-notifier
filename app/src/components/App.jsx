@@ -41,7 +41,7 @@ export default function App() {
 
   useEffect(() => {
     if (needRefresh(lastSyncedAt)) {
-      setInfoText('👈 Need to sync schedules');
+      setInfoText('Need to sync schedules');
       return;
     }
     setInfoText(`Synced at ${moment(lastSyncedAt).format('LT')}`);
@@ -84,7 +84,7 @@ export default function App() {
     return (
       <IconButton
         disabled={!videoMeetingUrl}
-        size="large"
+        size="small"
         color="primary"
         onClick={() => openVideoMeeting(videoMeetingUrl)}
       >
@@ -98,7 +98,7 @@ export default function App() {
     return (
       <IconButton
         disabled={!wikiUrl}
-        size="large"
+        size="small"
         color="primary"
         onClick={() => {}}
       >
@@ -182,11 +182,11 @@ export default function App() {
             helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
           />
         </Box>
-        <Box display="flex" alignItems="center" mt={-1}>
+        <Box display="flex" alignItems="center">
           {drawGoToMeetingIcon(upcomingSchedule)}
           {drawWikiIcon(upcomingSchedule)}
           <IconButton
-            size="large"
+            size="small"
             disabled={!needRefresh(lastSyncedAt)}
             color={needRefresh(lastSyncedAt) ? 'error' : 'success'}
             onClick={() => handleClickRefresh()}
