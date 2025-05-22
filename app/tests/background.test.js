@@ -53,6 +53,12 @@ test('Extract wiki url from memo', () => {
       },
       expected: 'https://wiki.blahblah.com/pageId=999999',
     },
+    {
+      schedule: {
+        memo: '(wiki: https://wiki.blahblah.com/pageId=1234)',
+      },
+      expected: 'https://wiki.blahblah.com/pageId=1234',
+    },
   ];
   testCases.forEach((tc) => expect(getWikiUrl(tc.schedule)).toEqual(tc.expected));
 });

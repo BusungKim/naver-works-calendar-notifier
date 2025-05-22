@@ -151,9 +151,9 @@ export function getWikiUrl(schedule) {
   return undefined;
 }
 
-const zoomRegex = /(https:\/\/.*\.zoom\.us\/[^\s]+)/g;
+const zoomRegex = /(https:\/\/.*\.zoom\.us\/[^\s()]+)/g;
 const worksRegex = /https:\/\/works\.do\/.*/g;
-const wikiRegex = /https:\/\/\S*wiki\S*/g;
+const wikiRegex = /https:\/\/\S*wiki[^\s()]+/g;
 
 function findMeetingUrlFromText(text = '') {
   const zoomMatches = text.match(zoomRegex);
