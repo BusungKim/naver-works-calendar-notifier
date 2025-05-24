@@ -44,7 +44,7 @@ export default function App() {
       setInfoText('Need to sync schedules');
       return;
     }
-    setInfoText(`Synced at ${moment(lastSyncedAt).format('LT')}`);
+    setInfoText('');
   }, [lastSyncedAt]);
 
   function handleChangeSound(nextSound) {
@@ -160,14 +160,14 @@ export default function App() {
         </Box>
         <Box display="flex" alignItems="center" p={1}>
           <CustomSelect
-            name="Notification Time Window"
+            name="Notification Timing"
             value={notiTimeWindow}
             onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
               { value: 0, label: 'On Time' },
-              { value: 1, label: '1 min' },
-              { value: 2, label: '2 min' },
-              { value: 3, label: '3 min' },
+              { value: 1, label: '1 minute before' },
+              { value: 2, label: '2 minutes before' },
+              { value: 3, label: '3 minutes before' },
             ]}
           />
         </Box>
@@ -205,20 +205,17 @@ export default function App() {
   );
 }
 
-function prettyUpcomingStartDate(startDate) {
+function prettyStartDate(startDate) {
   if (!startDate) {
     return '';
   }
-
-  const seconds = Math.floor((moment(startDate) - Date.now()) / 1000);
+  const startDateMoment = moment(startDate);
+  const seconds = Math.floor((startDateMoment - Date.now()) / 1000);
   if (seconds <= 0) {
     return 'Already started ⏰';
   }
 
-  const hour = Math.floor(seconds / 3600);
-  const minute = Math.floor((seconds % 3600) / 60);
-
-  return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
+  return `Starting at ${startDateMoment.format('LT')}`;
 }
 
 function needRefresh(lastSyncedAt) {
