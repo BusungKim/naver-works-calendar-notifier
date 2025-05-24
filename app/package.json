@@ -19,8 +19,8 @@
   "scripts": {
     "clean": "rm -rf .parcel-cache ../dist",
     "eslint": "eslint --fix --ext .jsx,.js,.tsx,.ts src",
-    "dev": "parcel",
-    "build-local": "npm run clean && cross-env LOCAL_BUILD=true parcel build --no-content-hash --no-optimize",
+    "dev": "npm run clean && PARCEL_WORKERS=0 parcel",
+    "build-local": "npm run clean && cross-env LOCAL_BUILD=true PARCEL_WORKERS=0 parcel build --no-content-hash --no-optimize",
     "build": "./build.sh",
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
   },
