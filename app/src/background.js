@@ -113,6 +113,7 @@ export function notify(schedule, options) {
   }
 
   const videoMeetingUrl = getVideoMeetingUrl(schedule);
+  const wikiUrl = getWikiUrl(schedule);
   chrome?.notifications?.create(schedule.scheduleId, {
     title: schedule.content,
     message: videoMeetingUrl ? 'Click to join the meeting' : 'Time to attend the meeting',
@@ -121,7 +122,10 @@ export function notify(schedule, options) {
     type: 'basic',
     iconUrl: chrome?.runtime?.getURL('asset/icons8-calendar-96.png'),
   }, () => {
-    chrome?.storage?.local?.set({ 'data.lastVideoMeetingUrl': videoMeetingUrl });
+    chrome?.storage?.local?.set({
+      'data.lastVideoMeetingUrl': videoMeetingUrl,
+      'data.lastWikiUrl': wikiUrl,
+    });
   });
 }
 
@@ -170,10 +174,15 @@ function findMeetingUrlFromText(text = '') {
 }
 
 chrome?.notifications?.onClicked?.addListener(async (notificationId) => {
-  const storageResult = await chrome?.storage?.local?.get('data.lastVideoMeetingUrl');
+  const storageResult = await chrome?.storage?.local?.get(['data.lastVideoMeetingUrl', 'data.lastWikiUrl']);
+  const lastWikiUrl = storageResult['data.lastWikiUrl'];
+  if (lastWikiUrl) {
+    openTab(lastWikiUrl);
+  }
   const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
   if (lastVideoMeetingUrl) {
-    openTab(lastVideoMeetingUrl);
+    const window = await chrome.windows.create({ url: lastVideoMeetingUrl, width: 10, height: 10 });
+    setTimeout(() => chrome.windows.remove(window.id), 1_000);
   }
 
   chrome?.notifications?.clear(notificationId);
@@ -193,6 +202,7 @@ export function openTab(url) {
 function postCloseNotification() {
   chrome?.offscreen?.closeDocument();
   chrome?.storage?.local?.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
+  chrome?.storage?.local?.remove(['data.lastVideoMeetingUrl', 'data.lastWikiUrl']);
 }
 
 chrome?.runtime?.onInstalled.addListener(async () => {
