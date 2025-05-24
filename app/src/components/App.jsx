@@ -13,18 +13,18 @@ export default function App() {
   const [sound, setSound] = useState('none');
   const [notiRetention, setNotiRetention] = useState('forever');
   const [notiTimeWindow, setNotiTimeWindow] = useState('0');
-  const [upcomingSchedule, setUpcomingSchedule] = useState({});
+  const [nextSchedule, setNextSchedule] = useState({});
   const [lastSyncedAt, setLastSyncedAt] = useState(0);
   const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
     async function init() {
-      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
+      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.nextSchedule']);
       if (result) {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
         setNotiTimeWindow(result['setting.notiTimeWindow']);
-        setUpcomingSchedule(result['data.upcomingSchedule']);
+        setNextSchedule(result['data.nextSchedule']);
       }
     }
     init();
@@ -174,17 +174,17 @@ export default function App() {
         <Box display="flex" alignItems="center" p={1}>
           <TextField
             id="outlined-disabled"
-            label="Upcoming Meeting"
+            label="Next Meeting"
             size="small"
             disabled
             fullWidth
-            value={upcomingSchedule?.content || 'No meeting today 👋'}
-            helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
+            value={nextSchedule?.content || 'No meeting today 👋'}
+            helperText={prettyStartDate(nextSchedule?.fixedStartDate)}
           />
         </Box>
-        <Box display="flex" alignItems="center">
-          {drawGoToMeetingIcon(upcomingSchedule)}
-          {drawWikiIcon(upcomingSchedule)}
+        <Box display="flex" alignItems="center" p={1}>
+          {drawGoToMeetingIcon(nextSchedule)}
+          {drawWikiIcon(nextSchedule)}
           <IconButton
             size="small"
             disabled={!needRefresh(lastSyncedAt)}

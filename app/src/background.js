@@ -22,7 +22,7 @@ function getFilteredSchedulesWithSideEffect(schedules) {
   console.info('filteredSchedules: ', filteredSchedules);
 
   setBadgeText(filteredSchedules);
-  setUpcomingSchedule(filteredSchedules);
+  setNextSchedule(filteredSchedules);
 
   return filteredSchedules;
 }
@@ -33,12 +33,12 @@ function setBadgeText(schedules) {
   chrome?.action?.setBadgeBackgroundColor({ color: '#28C665' });
 }
 
-function setUpcomingSchedule(schedules) {
-  let upcomingSchedule = {};
+function setNextSchedule(schedules) {
+  let nextSchedule = {};
   if (schedules.length > 0) {
-    [upcomingSchedule] = schedules;
+    [nextSchedule] = schedules;
   }
-  chrome?.storage?.local?.set({ 'data.upcomingSchedule': upcomingSchedule });
+  chrome?.storage?.local?.set({ 'data.nextSchedule': nextSchedule });
 }
 
 chrome?.alarms?.onAlarm?.addListener(handleAlarm);
