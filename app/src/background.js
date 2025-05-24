@@ -85,11 +85,8 @@ function sendNotification(schedules, options) {
   const nowTsSec = Math.floor(Date.now() / 1000);
   const alarmNeededSchedules = schedules.filter((s) => {
     const tsDiff = Math.floor(Date.parse(s.fixedStartDate) / 1000) - nowTsSec;
-
-    if (timeWindowMin === 0) {
-      return tsDiff <= 0 && tsDiff > -60;
-    }
-    return tsDiff >= 0 && tsDiff < timeWindowMin * 60;
+    // eslint-disable-next-line yoda
+    return -120 <= tsDiff && tsDiff < timeWindowMin * 60;
   });
 
   alarmNeededSchedules.forEach((schedule) => notify(schedule, options));
@@ -201,7 +198,7 @@ export function openTab(url) {
 
 function postCloseNotification() {
   chrome?.offscreen?.closeDocument();
-  chrome?.storage?.local?.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 3 });
+  chrome?.storage?.local?.set({ 'data.pausedUntilTs': Date.now() + 1000 * 60 * 5 });
   chrome?.storage?.local?.remove(['data.lastVideoMeetingUrl', 'data.lastWikiUrl']);
 }
 
