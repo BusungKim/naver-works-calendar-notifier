@@ -178,8 +178,7 @@ chrome?.notifications?.onClicked?.addListener(async (notificationId) => {
   }
   const lastVideoMeetingUrl = storageResult['data.lastVideoMeetingUrl'];
   if (lastVideoMeetingUrl) {
-    const window = await chrome.windows.create({ url: lastVideoMeetingUrl, width: 10, height: 10 });
-    setTimeout(() => chrome.windows.remove(window.id), 1_000);
+    openTab(lastVideoMeetingUrl);
   }
 
   chrome?.notifications?.clear(notificationId);
