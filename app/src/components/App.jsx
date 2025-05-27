@@ -1,6 +1,6 @@
 /* global chrome */
 import {
-  Box, FormControl, IconButton, TextField, Typography,
+  Box, IconButton, TextField, Typography,
 } from '@mui/material';
 import { Description, Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
