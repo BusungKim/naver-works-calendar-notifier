@@ -53,11 +53,10 @@ function isRejected(schedule) {
 
 function postProcess(schedule) {
   const ret = { ...schedule };
-  ret.content = ret.content
-    .replace('&lt;', '<')
-    .replace('&gt;', '>')
-    .replace('&amp;', '&')
-    .replace('&ndash;', '-');
+  const converters = [['&lt;', '<'], ['&gt;', '>'], ['&amp;', '&'], ['&ndash;', '-']];
+
+  ret.content = converters.reduce((acc, converter) => acc.replace(converter[0], converter[1]), ret.content);
+  ret.memo = converters.reduce((acc, converter) => acc.replace(converter[0], converter[1]), ret.memo);
 
   return ret;
 }

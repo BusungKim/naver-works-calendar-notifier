@@ -1,36 +1,38 @@
 /* global chrome */
 import {
-  Box, FormControl, IconButton, TextField, Typography,
+  Box, IconButton, TextField, Typography,
 } from '@mui/material';
-import { Refresh, Videocam } from '@mui/icons-material';
+import { Description, Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
-import { getVideoMeetingUrl, openVideoMeeting } from '../background';
+import { getVideoMeetingUrl, getWikiUrl, openTab } from '../background';
 import moment from 'moment';
 
 export default function App() {
   const [sound, setSound] = useState('none');
   const [notiRetention, setNotiRetention] = useState('forever');
   const [notiTimeWindow, setNotiTimeWindow] = useState('0');
-  const [upcomingSchedule, setUpcomingSchedule] = useState({});
+  const [nextSchedule, setNextSchedule] = useState({});
   const [lastSyncedAt, setLastSyncedAt] = useState(0);
   const [infoText, setInfoText] = useState('');
 
   useEffect(() => {
     async function init() {
-      const result = await chrome?.storage?.local.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.upcomingSchedule']);
-      setSound(result['setting.sound']);
-      setNotiRetention(result['setting.notiRetention']);
-      setNotiTimeWindow(result['setting.notiTimeWindow']);
-      setUpcomingSchedule(result['data.upcomingSchedule']);
+      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.nextSchedule']);
+      if (result) {
+        setSound(result['setting.sound']);
+        setNotiRetention(result['setting.notiRetention']);
+        setNotiTimeWindow(result['setting.notiTimeWindow']);
+        setNextSchedule(result['data.nextSchedule']);
+      }
     }
     init();
   }, []);
 
   useEffect(() => {
     async function updateLastSyncedAt() {
-      const r = await chrome?.storage?.local.get(['data.lastSyncedAt']) || {};
+      const r = await chrome?.storage?.local?.get(['data.lastSyncedAt']) || {};
       setLastSyncedAt(r['data.lastSyncedAt'] || 0);
     }
     updateLastSyncedAt();
@@ -39,35 +41,35 @@ export default function App() {
 
   useEffect(() => {
     if (needRefresh(lastSyncedAt)) {
-      setInfoText('👈 Need to sync schedules');
+      setInfoText('Need to sync schedules');
       return;
     }
-    setInfoText(`Synced at ${moment(lastSyncedAt).format('LT')}`);
+    setInfoText('');
   }, [lastSyncedAt]);
 
   function handleChangeSound(nextSound) {
     console.log('handleChangeSound: ', nextSound);
-    chrome?.storage?.local.set({ 'setting.sound': nextSound }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.sound': nextSound }).then(() => {
       setSound(nextSound);
     });
   }
 
   function handleChangeNotiRetention(nextNotiRetention) {
     console.log('handleChangeNotiRetention: ', nextNotiRetention);
-    chrome?.storage?.local.set({ 'setting.notiRetention': nextNotiRetention }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.notiRetention': nextNotiRetention }).then(() => {
       setNotiRetention(nextNotiRetention);
     });
   }
 
   function handleChangeNotiTimeWindow(nextNotiTimeWindow) {
     console.log('handleChangeNotiTimeWindow: ', nextNotiTimeWindow);
-    chrome?.storage?.local.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
+    chrome?.storage?.local?.set({ 'setting.notiTimeWindow': nextNotiTimeWindow }).then(() => {
       setNotiTimeWindow(nextNotiTimeWindow);
     });
   }
 
   async function handleClickRefresh() {
-    const r = await chrome?.storage?.local.get(['data.initialData']) || {};
+    const r = await chrome?.storage?.local?.get(['data.initialData']) || {};
     const initialData = r['data.initialData'] || {};
 
     if (!initialData.serverUrl) {
@@ -82,11 +84,25 @@ export default function App() {
     return (
       <IconButton
         disabled={!videoMeetingUrl}
-        size="large"
+        size="small"
         color="primary"
-        onClick={() => openVideoMeeting(videoMeetingUrl)}
+        onClick={() => openTab(videoMeetingUrl)}
       >
         <Videocam />
+      </IconButton>
+    );
+  }
+
+  function drawWikiIcon(schedule) {
+    const wikiUrl = getWikiUrl(schedule);
+    return (
+      <IconButton
+        disabled={!wikiUrl}
+        size="small"
+        color="primary"
+        onClick={() => openTab(wikiUrl)}
+      >
+        <Description />
       </IconButton>
     );
   }
@@ -144,33 +160,33 @@ export default function App() {
         </Box>
         <Box display="flex" alignItems="center" p={1}>
           <CustomSelect
-            name="Notification Time Window"
+            name="Notification Timing"
             value={notiTimeWindow}
             onChange={(e) => handleChangeNotiTimeWindow(e)}
             items={[
               { value: 0, label: 'On Time' },
-              { value: 1, label: '1 min' },
-              { value: 2, label: '2 min' },
-              { value: 3, label: '3 min' },
+              { value: 1, label: '1 minute before' },
+              { value: 2, label: '2 minutes before' },
+              { value: 3, label: '3 minutes before' },
             ]}
           />
         </Box>
-        <Box display="flex" p={1}>
+        <Box display="flex" alignItems="center" p={1}>
           <TextField
             id="outlined-disabled"
-            label="Upcoming Meeting"
+            label="Next Meeting"
             size="small"
             disabled
-            value={upcomingSchedule?.content || 'No meeting today 👋'}
-            helperText={prettyUpcomingStartDate(upcomingSchedule?.fixedStartDate)}
+            fullWidth
+            value={nextSchedule?.content || 'No meeting today 👋'}
+            helperText={prettyStartDate(nextSchedule?.fixedStartDate)}
           />
-          <FormControl>
-            {drawGoToMeetingIcon(upcomingSchedule)}
-          </FormControl>
         </Box>
-        <Box display="flex" alignItems="center" mt={-1}>
+        <Box display="flex" alignItems="center" p={1}>
+          {drawGoToMeetingIcon(nextSchedule)}
+          {drawWikiIcon(nextSchedule)}
           <IconButton
-            size="large"
+            size="small"
             disabled={!needRefresh(lastSyncedAt)}
             color={needRefresh(lastSyncedAt) ? 'error' : 'success'}
             onClick={() => handleClickRefresh()}
@@ -189,20 +205,17 @@ export default function App() {
   );
 }
 
-function prettyUpcomingStartDate(startDate) {
+function prettyStartDate(startDate) {
   if (!startDate) {
     return '';
   }
-
-  const seconds = Math.floor((moment(startDate) - Date.now()) / 1000);
+  const startDateMoment = moment(startDate);
+  const seconds = Math.floor((startDateMoment - Date.now()) / 1000);
   if (seconds <= 0) {
     return 'Already started ⏰';
   }
 
-  const hour = Math.floor(seconds / 3600);
-  const minute = Math.floor((seconds % 3600) / 60);
-
-  return `Starting in ${hour > 0 ? `${hour}h ` : ' '}${minute}m ⏳`;
+  return `Starting at ${startDateMoment.format('LT')}`;
 }
 
 function needRefresh(lastSyncedAt) {

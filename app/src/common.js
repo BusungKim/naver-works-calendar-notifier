@@ -2,7 +2,7 @@
 import moment from 'moment/moment';
 
 export async function getTodaySchedules(options) {
-  const r = await chrome?.storage?.local.get(['data.initialData']);
+  const r = await chrome?.storage?.local?.get(['data.initialData']);
   const initialData = r['data.initialData'];
   if (!initialData) {
     throw new Error('no initial data');
