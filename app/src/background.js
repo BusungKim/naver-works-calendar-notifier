@@ -23,10 +23,7 @@ async function getServerTimezoneId() {
 
 async function getFilteredSchedulesWithSideEffect(schedules) {
   const serverTimezoneId = await getServerTimezoneId();
-
-  // Calculate current time in server timezone if available
-  const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
-  const nowTsSec = Math.floor(now.valueOf() / 1000);
+  const nowTsSec = Math.floor(moment().valueOf() / 1000);
 
   const filteredSchedules = getFilteredSchedules(schedules, nowTsSec, serverTimezoneId);
   console.info('filteredSchedules: ', filteredSchedules);
@@ -57,11 +54,9 @@ export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
   if (pausedUntilTs) {
     const serverTimezoneId = await getServerTimezoneId();
-
-    const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
     const pausedUntil = serverTimezoneId ? moment.tz(pausedUntilTs, serverTimezoneId) : moment(pausedUntilTs);
 
-    if (now.isSameOrBefore(pausedUntil)) {
+    if (moment().isSameOrBefore(pausedUntil)) {
       console.log('paused until', pausedUntil.local().format('LT'));
       return;
     }
