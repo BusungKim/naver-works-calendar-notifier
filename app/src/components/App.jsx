@@ -69,14 +69,14 @@ export default function App() {
   }
 
   async function handleClickRefresh() {
-    const r = await chrome?.storage?.local?.get(['data.initialData']) || {};
-    const initialData = r['data.initialData'] || {};
+    const r = await chrome?.storage?.local?.get(['data.origin']);
+    const origin = r['data.origin'];
 
-    if (!initialData.serverUrl) {
+    if (!origin) {
       setInfoText('Please open your calendar manually 📅');
       return;
     }
-    chrome?.tabs?.create({ url: initialData.serverUrl, active: true });
+    chrome?.tabs?.create({ url: origin, active: true });
   }
 
   function drawGoToMeetingIcon(schedule) {

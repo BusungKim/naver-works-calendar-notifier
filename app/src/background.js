@@ -50,11 +50,11 @@ export async function handleAlarm() {
     return;
   }
 
-  const result = await chrome?.storage?.local?.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+  const result = await chrome?.storage?.local?.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
 
   let schedules;
   try {
-    schedules = await getTodaySchedules({ sameOrigin: false });
+    schedules = await getTodaySchedules();
     cacheSchedules(schedules);
   } catch (e) {
     // fallback
