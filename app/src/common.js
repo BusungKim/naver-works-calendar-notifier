@@ -24,6 +24,8 @@ export async function getTodaySchedules() {
   const { userId } = userInfo.userBasicInfo;
   const { defaultCalendarId } = userInfo.userConfig;
 
+  chrome?.storage?.local?.set({ 'data.serverTimezoneId': timezoneId });
+
   // Build request body
   const now = moment().tz(timezoneId);
   const localStartDateTime = now.format('YYYY-MM-DD HH:mm:ss');

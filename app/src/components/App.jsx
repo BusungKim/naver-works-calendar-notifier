@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Debug } from './Debug';
 import { CustomSelect } from './CustomSelect';
 import { getVideoMeetingUrl, getWikiUrl, openTab } from '../background';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 export default function App() {
   const [sound, setSound] = useState('none');
@@ -16,15 +16,17 @@ export default function App() {
   const [nextSchedule, setNextSchedule] = useState({});
   const [lastSyncedAt, setLastSyncedAt] = useState(0);
   const [infoText, setInfoText] = useState('');
+  const [serverTimezoneId, setServerTimezoneId] = useState(null);
 
   useEffect(() => {
     async function init() {
-      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.nextSchedule']);
+      const result = await chrome?.storage?.local?.get(['setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow', 'data.nextSchedule', 'data.serverTimezoneId']);
       if (result) {
         setSound(result['setting.sound']);
         setNotiRetention(result['setting.notiRetention']);
         setNotiTimeWindow(result['setting.notiTimeWindow']);
         setNextSchedule(result['data.nextSchedule']);
+        setServerTimezoneId(result['data.serverTimezoneId']);
       }
     }
     init();
@@ -179,7 +181,7 @@ export default function App() {
             disabled
             fullWidth
             value={nextSchedule?.content || 'No meeting today 👋'}
-            helperText={prettyStartDate(nextSchedule?.fixedStartDate)}
+            helperText={prettyStartDate(nextSchedule?.fixedStartDate, serverTimezoneId)}
           />
         </Box>
         <Box display="flex" alignItems="center" p={1}>
@@ -205,17 +207,24 @@ export default function App() {
   );
 }
 
-function prettyStartDate(startDate) {
+function prettyStartDate(startDate, serverTimezoneId) {
   if (!startDate) {
     return '';
   }
-  const startDateMoment = moment(startDate);
-  const seconds = Math.floor((startDateMoment - Date.now()) / 1000);
+
+  const startDateMoment = serverTimezoneId
+    ? moment.tz(startDate, serverTimezoneId)
+    : moment(startDate);
+  const now = serverTimezoneId
+    ? moment().tz(serverTimezoneId)
+    : moment();
+
+  const seconds = Math.floor((startDateMoment - now) / 1000);
   if (seconds <= 0) {
     return 'Already started ⏰';
   }
 
-  return `Starting at ${startDateMoment.format('LT')}`;
+  return `Starting at ${startDateMoment.local().format('LT')}`;
 }
 
 function needRefresh(lastSyncedAt) {
