@@ -19,10 +19,10 @@ export async function getTodaySchedules() {
   }
   const userInfo = await userInfoRes.json();
 
-  const loginUserInstanceCode = userInfo.userBasicInfo.loginUserInstanceCode;
-  const timezoneId = userInfo.userBasicInfo.userTimezoneInfo.timezoneId;
-  const userId = userInfo.userBasicInfo.userId;
-  const defaultCalendarId = userInfo.userConfig.defaultCalendarId;
+  const { loginUserInstanceCode } = userInfo.userBasicInfo;
+  const { timezoneId } = userInfo.userBasicInfo.userTimezoneInfo;
+  const { userId } = userInfo.userBasicInfo;
+  const { defaultCalendarId } = userInfo.userConfig;
 
   // Build request body
   const now = moment().tz(timezoneId);
@@ -51,7 +51,6 @@ export async function getTodaySchedules() {
   if (!res.ok) {
     throw new Error('failed to get today schedules');
   }
-  const json = await res.json()
+  const json = await res.json();
   return json.retScheduleList.returnValue;
 }
-
