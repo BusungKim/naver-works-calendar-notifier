@@ -16,10 +16,13 @@ async function cacheSchedules(schedules) {
   await chrome?.storage?.local?.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
 }
 
-async function getFilteredSchedulesWithSideEffect(schedules) {
-  // Get server timezone for filtering
+async function getServerTimezoneId() {
   const storageResult = await chrome?.storage?.local?.get(['data.serverTimezoneId']);
-  const serverTimezoneId = storageResult['data.serverTimezoneId'];
+  return storageResult['data.serverTimezoneId'];
+}
+
+async function getFilteredSchedulesWithSideEffect(schedules) {
+  const serverTimezoneId = await getServerTimezoneId();
 
   // Calculate current time in server timezone if available
   const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
@@ -53,8 +56,7 @@ chrome?.alarms?.onAlarm?.addListener(handleAlarm);
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
   if (pausedUntilTs) {
-    const storageResult = await chrome?.storage?.local?.get(['data.serverTimezoneId']);
-    const serverTimezoneId = storageResult['data.serverTimezoneId'];
+    const serverTimezoneId = await getServerTimezoneId();
 
     const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
     const pausedUntil = serverTimezoneId ? moment.tz(pausedUntilTs, serverTimezoneId) : moment(pausedUntilTs);
@@ -96,10 +98,7 @@ async function getPausedUntilTs() {
 
 async function sendNotification(schedules, options) {
   const timeWindowMin = parseInt(options.timeWindow, 10);
-
-  // Get server timezone for comparison
-  const storageResult = await chrome?.storage?.local?.get(['data.serverTimezoneId']);
-  const serverTimezoneId = storageResult['data.serverTimezoneId'];
+  const serverTimezoneId = await getServerTimezoneId();
 
   const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
 
