@@ -95,13 +95,9 @@ async function sendNotification(schedules, options) {
   const timeWindowMin = parseInt(options.timeWindow, 10);
   const serverTimezoneId = await getServerTimezoneId();
 
-  const now = serverTimezoneId ? moment().tz(serverTimezoneId) : moment();
-
+  const now = moment();
   const alarmNeededSchedules = schedules.filter((s) => {
-    const scheduleStartMoment = serverTimezoneId
-      ? moment.tz(s.fixedStartDate, serverTimezoneId)
-      : moment(s.fixedStartDate);
-
+    const scheduleStartMoment = serverTimezoneId ? moment.tz(s.fixedStartDate, serverTimezoneId) : moment(s.fixedStartDate);
     const tsDiff = scheduleStartMoment.diff(now, 'seconds');
 
     // eslint-disable-next-line yoda

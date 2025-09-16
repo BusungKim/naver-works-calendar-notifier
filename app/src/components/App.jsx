@@ -212,14 +212,9 @@ function prettyStartDate(startDate, serverTimezoneId) {
     return '';
   }
 
-  const startDateMoment = serverTimezoneId
-    ? moment.tz(startDate, serverTimezoneId)
-    : moment(startDate);
-  const now = serverTimezoneId
-    ? moment().tz(serverTimezoneId)
-    : moment();
-
-  const seconds = Math.floor((startDateMoment - now) / 1000);
+  const startDateMoment = serverTimezoneId ? moment.tz(startDate, serverTimezoneId) : moment(startDate);
+  const now = moment();
+  const seconds = startDateMoment.diff(now, 'seconds');
   if (seconds <= 0) {
     return 'Already started ⏰';
   }

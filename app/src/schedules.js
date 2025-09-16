@@ -33,10 +33,7 @@ export function selectEffectiveSchedule(schedules, nowTsSec, serverTimezoneId = 
     return parentSchedule;
   }
 
-  const now = serverTimezoneId
-    ? moment.unix(nowTsSec).tz(serverTimezoneId)
-    : moment.unix(nowTsSec);
-
+  const now = serverTimezoneId ? moment.unix(nowTsSec).tz(serverTimezoneId) : moment.unix(nowTsSec);
   const todayStart = now.clone().startOf('day');
   const todayEnd = now.clone().endOf('day');
 
