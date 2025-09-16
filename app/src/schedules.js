@@ -1,25 +1,28 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 
-export function getFilteredSchedules(schedules, nowTsSec) {
+export function getFilteredSchedules(schedules, nowTsSec, serverTimezoneId = null) {
   const groups = Object.groupBy(schedules, (schedule) => {
     if (!schedule.parentScheduleId) {
       return schedule.scheduleId;
     }
     return schedule.parentScheduleId;
   });
-  console.info('today\'s schedule groups: ', groups);
 
   return Object.values(groups)
-    .flatMap((scheduleList) => selectEffectiveSchedule(scheduleList, nowTsSec))
+    .flatMap((scheduleList) => selectEffectiveSchedule(scheduleList, nowTsSec, serverTimezoneId))
     .filter((schedule) => schedule)
     .map(preProcess)
-    .filter((schedule) => !isOutdated(nowTsSec, schedule))
+    .filter((schedule) => !isOutdated(nowTsSec, schedule, serverTimezoneId))
     .filter((schedule) => !isRejected(schedule))
-    .sort((a, b) => Date.parse(a.fixedStartDate) - Date.parse(b.fixedStartDate))
+    .sort((a, b) => {
+      const aTime = serverTimezoneId ? moment.tz(a.fixedStartDate, serverTimezoneId).valueOf() : moment(a.fixedStartDate).valueOf();
+      const bTime = serverTimezoneId ? moment.tz(b.fixedStartDate, serverTimezoneId).valueOf() : moment(b.fixedStartDate).valueOf();
+      return aTime - bTime;
+    })
     .map(postProcess);
 }
 
-export function selectEffectiveSchedule(schedules, nowTsSec) {
+export function selectEffectiveSchedule(schedules, nowTsSec, serverTimezoneId = null) {
   if (schedules.length === 1) {
     return schedules[0];
   }
@@ -29,11 +32,15 @@ export function selectEffectiveSchedule(schedules, nowTsSec) {
     return parentSchedule;
   }
 
-  const todayStart = moment.unix(nowTsSec).startOf('day');
-  const todayEnd = moment.unix(nowTsSec).endOf('day');
+  const now = serverTimezoneId ? moment.unix(nowTsSec).tz(serverTimezoneId) : moment.unix(nowTsSec);
+  const todayStart = now.clone().startOf('day');
+  const todayEnd = now.clone().endOf('day');
 
   return schedules.filter((s) => s.parentScheduleId)
-    .find((s) => moment(s.startDate).isBetween(todayStart, todayEnd));
+    .find((s) => {
+      const scheduleTime = serverTimezoneId ? moment.tz(s.startDate, serverTimezoneId) : moment(s.startDate);
+      return scheduleTime.isBetween(todayStart, todayEnd);
+    });
 }
 
 function preProcess(schedule) {
@@ -43,8 +50,10 @@ function preProcess(schedule) {
   };
 }
 
-function isOutdated(nowTsSec, schedule) {
-  return nowTsSec - Math.floor(Date.parse(schedule.fixedStartDate) / 1000) >= 10 * 60;
+function isOutdated(nowTsSec, schedule, serverTimezoneId = null) {
+  const scheduleTime = serverTimezoneId ? moment.tz(schedule.fixedStartDate, serverTimezoneId) : moment(schedule.fixedStartDate);
+  const scheduleTimestamp = Math.floor(scheduleTime.valueOf() / 1000);
+  return nowTsSec - scheduleTimestamp >= 10 * 60;
 }
 
 function isRejected(schedule) {

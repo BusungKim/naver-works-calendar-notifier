@@ -1,44 +1,59 @@
 /* global chrome */
-import moment from 'moment/moment';
+import moment from 'moment-timezone';
 
-export async function getTodaySchedules(options) {
-  const r = await chrome?.storage?.local?.get(['data.initialData']);
-  const initialData = r['data.initialData'];
-  if (!initialData) {
-    throw new Error('no initial data');
+export async function getTodaySchedules() {
+  const storageResult = await chrome?.storage?.local?.get(['data.origin']);
+  const origin = storageResult['data.origin'];
+
+  if (!origin) {
+    throw new Error('No origin stored. Please visit the calendar page first.');
   }
 
-  const requestUrl = options.sameOrigin ? '/ajax/GetScheduleList' : `${initialData.serverUrl}/ajax/GetScheduleList`;
-  const timeStamp = new Date().getTime();
-  const scheduleQueryRange = [`${moment(timeStamp).format('YYYY-MM-DD HH:mm:ss')}`, `${moment(timeStamp).format('YYYY-MM-DD 23:59:59')}`];
+  // 1. Get user info
+  const userInfoRes = await fetch(`${origin}/api/userInfo`, {
+    method: 'GET',
+  });
 
-  const res = await fetch(requestUrl, {
-    body: makeRequestBody(initialData, scheduleQueryRange),
+  if (!userInfoRes.ok) {
+    throw new Error('failed to get user info');
+  }
+  const userInfo = await userInfoRes.json();
+
+  const { loginUserInstanceCode } = userInfo.userBasicInfo;
+  const { timezoneId } = userInfo.userBasicInfo.userTimezoneInfo;
+  const { userId } = userInfo.userBasicInfo;
+  const { defaultCalendarId } = userInfo.userConfig;
+
+  chrome?.storage?.local?.set({ 'data.serverTimezoneId': timezoneId });
+
+  // 2. Build request body
+  const now = moment().tz(timezoneId);
+  const localStartDateTime = now.format('YYYY-MM-DD HH:mm:ss');
+  const localEndDateTime = now.clone().format('YYYY-MM-DD 23:59:59');
+
+  const body = {
+    calendarUidWithInstanceCodeList: [{
+      calendarId: defaultCalendarId,
+      instanceCode: loginUserInstanceCode,
+    }],
+    startDate: localStartDateTime,
+    endDate: localEndDateTime,
+    userTimezone: timezoneId,
+  };
+
+  const formData = new FormData();
+  formData.append('bo', JSON.stringify(body));
+  formData.append('localUserId', userId);
+
+  // 3. Fetch today's schedules
+  const res = await fetch(`${origin}/ajax/GetScheduleList`, {
+    body: formData,
     method: 'post',
   });
 
   if (!res.ok) {
     throw new Error('failed to get today schedules');
   }
-  const responseBody = await res.json();
-
-  return responseBody.retScheduleList.returnValue;
-}
-
-function makeRequestBody(initialData, scheduleQueryRange = []) {
-  const body = {
-    calendarUidWithInstanceCodeList: [{
-      calendarId: initialData.defaultCalendarId,
-      instanceCode: initialData.instanceCode,
-    }],
-    startDate: scheduleQueryRange[0],
-    endDate: scheduleQueryRange[1],
-    userTimezone: initialData.userTimezone,
-  };
-
-  const formData = new FormData();
-  formData.append('bo', JSON.stringify(body));
-  formData.append('localUserId', initialData.userNo);
-
-  return formData;
+  const json = await res.json();
+  return json.retScheduleList.returnValue;
 }

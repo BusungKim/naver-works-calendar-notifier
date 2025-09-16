@@ -2,23 +2,30 @@
 
 import { getTodaySchedules } from './common';
 import { getFilteredSchedules } from './schedules';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 chrome?.runtime?.onMessage?.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
-  cacheSchedules(request.schedules);
-  getFilteredSchedulesWithSideEffect(request.schedules);
+  await cacheSchedules(request.schedules);
+  await getFilteredSchedulesWithSideEffect(request.schedules);
 });
 
 async function cacheSchedules(schedules) {
   await chrome?.storage?.local?.set({ 'data.schedules': schedules, 'data.lastSyncedAt': Date.now() });
 }
 
-function getFilteredSchedulesWithSideEffect(schedules) {
-  const nowTsSec = Math.floor(Date.now() / 1000);
-  const filteredSchedules = getFilteredSchedules(schedules, nowTsSec);
+async function getServerTimezoneId() {
+  const storageResult = await chrome?.storage?.local?.get(['data.serverTimezoneId']);
+  return storageResult['data.serverTimezoneId'];
+}
+
+async function getFilteredSchedulesWithSideEffect(schedules) {
+  const serverTimezoneId = await getServerTimezoneId();
+  const nowTsSec = Math.floor(moment().valueOf() / 1000);
+
+  const filteredSchedules = getFilteredSchedules(schedules, nowTsSec, serverTimezoneId);
   console.info('filteredSchedules: ', filteredSchedules);
 
   setBadgeText(filteredSchedules);
@@ -45,30 +52,34 @@ chrome?.alarms?.onAlarm?.addListener(handleAlarm);
 
 export async function handleAlarm() {
   const pausedUntilTs = await getPausedUntilTs();
-  if (pausedUntilTs && Date.now() <= pausedUntilTs) {
-    console.log('paused until', moment(pausedUntilTs).format('YYYY-MM-DD HH:mm:ss'));
-    return;
+  if (pausedUntilTs) {
+    const serverTimezoneId = await getServerTimezoneId();
+    const pausedUntil = serverTimezoneId ? moment.tz(pausedUntilTs, serverTimezoneId) : moment(pausedUntilTs);
+
+    if (moment().isSameOrBefore(pausedUntil)) {
+      console.log('paused until', pausedUntil.local().format('LT'));
+      return;
+    }
   }
 
-  const result = await chrome?.storage?.local?.get(['data.initialData', 'data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
+  const result = await chrome?.storage?.local?.get(['data.schedules', 'setting.sound', 'setting.notiRetention', 'setting.notiTimeWindow']);
 
   let schedules;
   try {
-    schedules = await getTodaySchedules({ sameOrigin: false });
-    cacheSchedules(schedules);
+    schedules = await getTodaySchedules();
+    await cacheSchedules(schedules);
   } catch (e) {
-    // fallback
     console.warn('fallback getTodaySchedules', e);
     schedules = result['data.schedules'] || [];
   }
-  schedules = getFilteredSchedulesWithSideEffect(schedules);
+  schedules = await getFilteredSchedulesWithSideEffect(schedules);
 
   const options = {
     sound: result['setting.sound'],
     retention: result['setting.notiRetention'],
     timeWindow: result['setting.notiTimeWindow'],
   };
-  sendNotification(schedules, options);
+  await sendNotification(schedules, options);
 }
 
 async function getPausedUntilTs() {
@@ -79,12 +90,15 @@ async function getPausedUntilTs() {
   return pausedUntilResult['data.pausedUntilTs'];
 }
 
-function sendNotification(schedules, options) {
+async function sendNotification(schedules, options) {
   const timeWindowMin = parseInt(options.timeWindow, 10);
+  const serverTimezoneId = await getServerTimezoneId();
 
-  const nowTsSec = Math.floor(Date.now() / 1000);
+  const now = moment();
   const alarmNeededSchedules = schedules.filter((s) => {
-    const tsDiff = Math.floor(Date.parse(s.fixedStartDate) / 1000) - nowTsSec;
+    const scheduleStartMoment = serverTimezoneId ? moment.tz(s.fixedStartDate, serverTimezoneId) : moment(s.fixedStartDate);
+    const tsDiff = scheduleStartMoment.diff(now, 'seconds');
+
     // eslint-disable-next-line yoda
     return -120 <= tsDiff && tsDiff < timeWindowMin * 60;
   });
