@@ -69,7 +69,6 @@ export async function handleAlarm() {
     schedules = await getTodaySchedules();
     await cacheSchedules(schedules);
   } catch (e) {
-    // fallback
     console.warn('fallback getTodaySchedules', e);
     schedules = result['data.schedules'] || [];
   }

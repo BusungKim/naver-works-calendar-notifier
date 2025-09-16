@@ -9,7 +9,7 @@ export async function getTodaySchedules() {
     throw new Error('No origin stored. Please visit the calendar page first.');
   }
 
-  // Get user info
+  // 1. Get user info
   const userInfoRes = await fetch(`${origin}/api/userInfo`, {
     method: 'GET',
   });
@@ -26,7 +26,7 @@ export async function getTodaySchedules() {
 
   chrome?.storage?.local?.set({ 'data.serverTimezoneId': timezoneId });
 
-  // Build request body
+  // 2. Build request body
   const now = moment().tz(timezoneId);
   const localStartDateTime = now.format('YYYY-MM-DD HH:mm:ss');
   const localEndDateTime = now.clone().format('YYYY-MM-DD 23:59:59');
@@ -45,6 +45,7 @@ export async function getTodaySchedules() {
   formData.append('bo', JSON.stringify(body));
   formData.append('localUserId', userId);
 
+  // 3. Fetch today's schedules
   const res = await fetch(`${origin}/ajax/GetScheduleList`, {
     body: formData,
     method: 'post',

@@ -1,7 +1,6 @@
 /* global chrome */
 import { getTodaySchedules } from './common';
 
-// Save the origin when content script loads
 chrome?.storage?.local?.set({ 'data.origin': window.location.origin });
 
 async function sendMessageToBackground() {
