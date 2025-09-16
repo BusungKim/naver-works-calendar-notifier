@@ -8,7 +8,7 @@ chrome?.runtime?.onMessage?.addListener(async (request) => {
   if (!request.schedules) {
     return;
   }
-  cacheSchedules(request.schedules);
+  await cacheSchedules(request.schedules);
   await getFilteredSchedulesWithSideEffect(request.schedules);
 });
 
@@ -67,7 +67,7 @@ export async function handleAlarm() {
   let schedules;
   try {
     schedules = await getTodaySchedules();
-    cacheSchedules(schedules);
+    await cacheSchedules(schedules);
   } catch (e) {
     // fallback
     console.warn('fallback getTodaySchedules', e);
