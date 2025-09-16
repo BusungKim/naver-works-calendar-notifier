@@ -7,7 +7,6 @@ export function getFilteredSchedules(schedules, nowTsSec, serverTimezoneId = nul
     }
     return schedule.parentScheduleId;
   });
-  console.info('today\'s schedule groups: ', groups);
 
   return Object.values(groups)
     .flatMap((scheduleList) => selectEffectiveSchedule(scheduleList, nowTsSec, serverTimezoneId))
