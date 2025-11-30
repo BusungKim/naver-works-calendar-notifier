@@ -1,7 +1,7 @@
 /* global chrome */
 import moment from 'moment-timezone';
 
-export async function getTodaySchedules() {
+async function getTodaySchedules() {
   const storageResult = await chrome?.storage?.local?.get([
     'data.origin',
     'data.loginUserInstanceCode',
@@ -49,3 +49,5 @@ export async function getTodaySchedules() {
   const json = await res.json();
   return json.retScheduleList.returnValue;
 }
+
+export default getTodaySchedules;

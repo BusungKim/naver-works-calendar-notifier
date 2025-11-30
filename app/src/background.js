@@ -1,6 +1,6 @@
 /* global chrome */
 
-import { getTodaySchedules } from './common';
+import getTodaySchedules from './common';
 import { getFilteredSchedules } from './schedules';
 import moment from 'moment-timezone';
 

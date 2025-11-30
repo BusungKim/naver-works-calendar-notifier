@@ -1,7 +1,7 @@
 /* global chrome */
-import { getTodaySchedules } from './common';
+import getTodaySchedules from './common';
 
-const origin = window.location.origin;
+const { origin } = window.location;
 
 async function getUserInfoAndCache() {
   const userInfoRes = await fetch(`${origin}/api/userInfo`, {
