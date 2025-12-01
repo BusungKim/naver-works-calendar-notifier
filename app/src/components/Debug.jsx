@@ -3,7 +3,7 @@ import React from 'react';
 import { Box, Button } from '@mui/material';
 import { handleAlarm, notify } from '../background';
 
-export function Debug() {
+function Debug() {
   return (
     <Box>
       <Button variant="contained" onClick={handleClickNotification}>Notification</Button>
@@ -59,3 +59,5 @@ function handleClickTab() {
     active: false,
   });
 }
+
+export default Debug;

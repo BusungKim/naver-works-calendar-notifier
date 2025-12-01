@@ -1,32 +1,25 @@
 /* global chrome */
 import moment from 'moment-timezone';
 
-export async function getTodaySchedules() {
-  const storageResult = await chrome?.storage?.local?.get(['data.origin']);
+async function getTodaySchedules() {
+  const storageResult = await chrome?.storage?.local?.get([
+    'data.origin',
+    'data.loginUserInstanceCode',
+    'data.timezoneId',
+    'data.userId',
+    'data.defaultCalendarId',
+  ]);
+
   const origin = storageResult['data.origin'];
+  const loginUserInstanceCode = storageResult['data.loginUserInstanceCode'];
+  const timezoneId = storageResult['data.timezoneId'];
+  const userId = storageResult['data.userId'];
+  const defaultCalendarId = storageResult['data.defaultCalendarId'];
 
-  if (!origin) {
-    throw new Error('No origin stored. Please visit the calendar page first.');
+  if (!origin || !loginUserInstanceCode || !timezoneId || !userId || !defaultCalendarId) {
+    throw new Error('No user info stored. Please visit the calendar page first.');
   }
 
-  // 1. Get user info
-  const userInfoRes = await fetch(`${origin}/api/userInfo`, {
-    method: 'GET',
-  });
-
-  if (!userInfoRes.ok) {
-    throw new Error('failed to get user info');
-  }
-  const userInfo = await userInfoRes.json();
-
-  const { loginUserInstanceCode } = userInfo.userBasicInfo;
-  const { timezoneId } = userInfo.userBasicInfo.userTimezoneInfo;
-  const { userId } = userInfo.userBasicInfo;
-  const { defaultCalendarId } = userInfo.userConfig;
-
-  chrome?.storage?.local?.set({ 'data.serverTimezoneId': timezoneId });
-
-  // 2. Build request body
   const now = moment().tz(timezoneId);
   const localStartDateTime = now.format('YYYY-MM-DD HH:mm:ss');
   const localEndDateTime = now.clone().format('YYYY-MM-DD 23:59:59');
@@ -45,7 +38,6 @@ export async function getTodaySchedules() {
   formData.append('bo', JSON.stringify(body));
   formData.append('localUserId', userId);
 
-  // 3. Fetch today's schedules
   const res = await fetch(`${origin}/ajax/GetScheduleList`, {
     body: formData,
     method: 'post',
@@ -57,3 +49,5 @@ export async function getTodaySchedules() {
   const json = await res.json();
   return json.retScheduleList.returnValue;
 }
+
+export default getTodaySchedules;

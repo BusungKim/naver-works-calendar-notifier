@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NAVER WORKS Calendar Notifier",
   "description": "This extension sends notifications to you at your meeting schedule.",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "action": {
     "default_popup": "dist/index.html",
     "default_icon": "asset/icons8-calendar-96.png"
@@ -11,7 +11,13 @@
     "96": "asset/icons8-calendar-96.png",
     "128": "asset/icons8-calendar-128.png"
   },
-  "permissions": ["alarms", "notifications", "storage", "offscreen"],
+  "permissions": ["alarms", "notifications", "storage", "offscreen", "declarativeNetRequest"],
+  "host_permissions": [
+    "https://calendar.worksmobile.com/*",
+    "https://*.calendar.worksmobile.com/*",
+    "https://calendar.navercorp.com/*",
+    "https://*.calendar.navercorp.com/*"
+  ],
   "content_scripts": [
     {
       "js": ["dist/content.js"],
@@ -26,5 +32,12 @@
   ],
   "background": {
     "service_worker": "dist/background.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [{
+      "id": "referer_rules",
+      "enabled": true,
+      "path": "config/rules.json"
+    }]
   }
 }

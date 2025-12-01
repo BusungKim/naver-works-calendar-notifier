@@ -4,8 +4,8 @@ import {
 } from '@mui/material';
 import { Description, Refresh, Videocam } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
-import { Debug } from './Debug';
-import { CustomSelect } from './CustomSelect';
+import Debug from './Debug';
+import CustomSelect from './CustomSelect';
 import { getVideoMeetingUrl, getWikiUrl, openTab } from '../background';
 import moment from 'moment-timezone';
 

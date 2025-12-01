@@ -3,7 +3,7 @@ import {
   FormControl, InputLabel, MenuItem, Select,
 } from '@mui/material';
 
-export function CustomSelect({
+function CustomSelect({
   name, value, onChange, items,
 }) {
   return (
@@ -26,3 +26,5 @@ export function CustomSelect({
     </FormControl>
   );
 }
+
+export default CustomSelect;

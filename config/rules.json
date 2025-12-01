@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Referer",
+          "operation": "set",
+          "value": "https://calendar.worksmobile.com/"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*://calendar.worksmobile.com/*",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Referer",
+          "operation": "set",
+          "value": "https://calendar.worksmobile.com/"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*://*.calendar.worksmobile.com/*",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  },
+  {
+    "id": 3,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Referer",
+          "operation": "set",
+          "value": "https://calendar.navercorp.com/"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*://calendar.navercorp.com/*",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  },
+  {
+    "id": 4,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Referer",
+          "operation": "set",
+          "value": "https://calendar.navercorp.com/"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*://*.calendar.navercorp.com/*",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  }
+]
